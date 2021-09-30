@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31702.278
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PythonETL_PI", "PythonETL_PI\PythonETL_PI.pyproj", "{995598A9-71CC-4594-87BB-51F1BF5FB69F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{995598A9-71CC-4594-87BB-51F1BF5FB69F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{995598A9-71CC-4594-87BB-51F1BF5FB69F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5EAB052C-EEFA-4E05-A2FA-C6660AFEB857}
+	EndGlobalSection
+EndGlobal
