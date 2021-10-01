@@ -5,6 +5,18 @@ VisualStudioVersion = 16.0.31702.278
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PythonETL_PI", "PythonETL_PI\PythonETL_PI.pyproj", "{995598A9-71CC-4594-87BB-51F1BF5FB69F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Environment", "Environment", "{3E97D8BC-02FC-43B5-801F-566EBFCB6E96}"
+	ProjectSection(SolutionItems) = preProject
+		Environment\py3_env-anaconda.yaml = Environment\py3_env-anaconda.yaml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataSources", "DataSources", "{D90D4CB9-8695-4F69-8431-0316FE6F60F3}"
+	ProjectSection(SolutionItems) = preProject
+		DataSources\data_anvisa.csv = DataSources\data_anvisa.csv
+		DataSources\drugbank.xsd = DataSources\drugbank.xsd
+		DataSources\full database.xml = DataSources\full database.xml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

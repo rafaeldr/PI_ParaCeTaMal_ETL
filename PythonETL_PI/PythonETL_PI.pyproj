@@ -12,6 +12,8 @@
     <Name>PythonETL_PI</Name>
     <RootNamespace>PythonETL_PI</RootNamespace>
     <InterpreterId>CondaEnv|CondaEnv|py3_env</InterpreterId>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
