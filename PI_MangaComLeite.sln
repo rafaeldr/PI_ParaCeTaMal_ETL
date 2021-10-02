@@ -14,6 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataSources", "DataSources"
 	ProjectSection(SolutionItems) = preProject
 		DataSources\data_anvisa.csv = DataSources\data_anvisa.csv
 		DataSources\drugbank.xsd = DataSources\drugbank.xsd
+		DataSources\drugbank_sample6.xml = DataSources\drugbank_sample6.xml
 		DataSources\full database.xml = DataSources\full database.xml
 	EndProjectSection
 EndProject
