@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /DataSources/full database.xml
+/DataSources/exp_csv_drugs.csv
+/DataSources/exp_csv_interactions.csv
