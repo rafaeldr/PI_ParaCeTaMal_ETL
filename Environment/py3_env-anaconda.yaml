@@ -86,5 +86,19 @@ dependencies:
   - wheel=0.36.2=pyhd3eb1b0_0
   - wincertstore=0.2=py38_0
   - winpty=0.4.3=4
+  - xmltodict=0.12.0=pyhd3eb1b0_0
   - zeromq=4.3.3=ha925a31_3
   - zipp=3.5.0=pyhd3eb1b0_0
+  - pip:
+    - chardet==3.0.4
+    - googletrans==4.0.0rc1
+    - h11==0.9.0
+    - h2==3.2.0
+    - hpack==3.0.0
+    - hstspreload==2021.10.1
+    - httpcore==0.9.1
+    - httpx==0.13.3
+    - hyperframe==5.2.0
+    - idna==2.10
+    - rfc3986==1.5.0
+    - sniffio==1.2.0

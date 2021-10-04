@@ -1,3 +1,5 @@
+from googletrans import Translator
+
 import xmltodict
 import pandas as pd
 import numpy as np
@@ -71,3 +73,5 @@ for rowStr in s_pAtivos:
 s_pAtivosExp = pd.Series(list(set(listFullAtivos)))
 s_pAtivosExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
 
+translator = Translator()
+pass
