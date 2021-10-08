@@ -1,9 +1,14 @@
-from googletrans import Translator
-
 import xmltodict
 import pandas as pd
 import numpy as np
 import collections
+
+import six
+from google.cloud import translate_v2 as translate
+
+import os
+parentDir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(parentDir, r"Environment\translator-project.json")
 
 # File locations
 anvisa_file = r"..\DataSources\data_anvisa.csv"
@@ -73,5 +78,7 @@ for rowStr in s_pAtivos:
 s_pAtivosExp = pd.Series(list(set(listFullAtivos)))
 s_pAtivosExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
 
-translator = Translator()
-pass
+# Translator Test
+
+translate_client = translate.Client()
+result = translate_client.translate('lepirudina', target_language='en', source_language='pt-br')

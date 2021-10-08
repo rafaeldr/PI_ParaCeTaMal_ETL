@@ -365,3 +365,4 @@ FodyWeavers.xsd
 /DataSources/exp_csv_drugs.csv
 /DataSources/exp_csv_interactions.csv
 /DataSources/exp_csv_pAtivos.csv
+/Environment/translator-project.json
