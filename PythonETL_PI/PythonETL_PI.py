@@ -3,13 +3,6 @@ import pandas as pd
 import numpy as np
 import collections
 
-import six
-from google.cloud import translate_v2 as translate
-
-import os
-parentDir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(parentDir, r"Environment\translator-project.json")
-
 # File locations
 anvisa_file = r"..\DataSources\data_anvisa.csv"
 #drugbank_file = r"..\DataSources\full database.xml"    # Full DrugBank - Takes ~6 min to parse
@@ -26,6 +19,7 @@ df_anvisa = pd.read_csv(anvisa_file, sep=';')
 with open(drugbank_file, encoding='utf-8') as fd:
     drugbank_dict = xmltodict.parse(fd.read())
 
+# region DrugBank
 # Drugs - Extraction
 data = []
 for drug in drugbank_dict['drugbank']['drug']:
@@ -49,23 +43,34 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
     if drugOrigin['drug-interactions']!=None:
         if drugOrigin['drug-interactions']['drug-interaction'] == collections.OrderedDict: # only 1 registry
             drugDestiny_id = str(drugOrigin['drug-interactions']['drug-interaction']['drugbank-id'])
-            data.append({'drugbank-id1':drugOrigin_id,
-                         'drugbank-id2':drugDestiny_id
-                         })
+            data.append([drugOrigin_id,
+                         drugDestiny_id
+                         ])
+# This way impact negatively the negative
+#            data.append({'drugbank-id1':drugOrigin_id,
+#                         'drugbank-id2':drugDestiny_id
+#                         })
         elif type(drugOrigin['drug-interactions']['drug-interaction']) == list:
             for drugDestiny in drugOrigin['drug-interactions']['drug-interaction']:
                 drugDestiny_id = str(drugDestiny['drugbank-id'])
-                data.append({'drugbank-id1':drugOrigin_id,
-                             'drugbank-id2':drugDestiny_id
-                             })
+                data.append([drugOrigin_id,
+                             drugDestiny_id
+                             ])
+#                data.append({'drugbank-id1':drugOrigin_id,
+#                             'drugbank-id2':drugDestiny_id
+#                             })
 
-df_interactions = pd.DataFrame(data)
+# Removing reversed duplicates
+data = {tuple(sorted(item)) for item in data}
+df_interactions = pd.DataFrame(data, columns=['drugbank-id1','drugbank-id2'])
 
 # Exporting
 df_drugs.to_csv(exp_csv_drugs, index = False)
 df_interactions.to_csv(exp_csv_interactions, index = False)
 
-# Anvisa - Extração Princípios Ativos
+# endregion DrugBank
+
+# Anvisa - Extracting Active Principles
 s_pAtivos = df_anvisa['PRINCIPIO_ATIVO']  # Series
 listFullAtivos = list()
 for rowStr in s_pAtivos:
@@ -75,10 +80,9 @@ for rowStr in s_pAtivos:
     else:
         continue
 
-s_pAtivosExp = pd.Series(list(set(listFullAtivos)))
+s_pAtivosExp = pd.Series(list(set(listFullAtivos))) # unique
 s_pAtivosExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
 
-# Translator Test
 
-translate_client = translate.Client()
-result = translate_client.translate('lepirudina', target_language='en', source_language='pt-br')
+pass
+# Translator Test
