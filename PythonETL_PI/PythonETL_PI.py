@@ -70,19 +70,57 @@ df_interactions.to_csv(exp_csv_interactions, index = False)
 
 # endregion DrugBank
 
-# Anvisa - Extracting Active Principles
-s_pAtivos = df_anvisa['PRINCIPIO_ATIVO']  # Series
-listFullAtivos = list()
-for rowStr in s_pAtivos:
-    if type(rowStr)==str:
-        rowList = list(map(str.upper,list(map(str.strip, rowStr.split('+')))))
-        listFullAtivos.extend(rowList)
-    else:
-        continue
+# region ANVISA
 
-s_pAtivosExp = pd.Series(list(set(listFullAtivos))) # unique
-s_pAtivosExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
+# Names (Anvisa_Name)
+
+s_Names = df_anvisa['NOME_PRODUTO']  # Series
+s_Registry = df_anvisa['NUMERO_REGISTRO_PRODUTO']  
+s_pAtivos = df_anvisa['PRINCIPIO_ATIVO']  
+
+if len(s_Names) != len(s_Registry) or len(s_Names) != len(s_pAtivos): # test
+    print('Unexpected error: Data Series s_names and s_Registry and s_pAtivos differ in length!')
+    exit(1)
+
+dictNames = dict()
+listRegistry = list()
+dictPrinciples = dict()
+list_Names_Principles = list()
+new_id_name = 0
+new_id_principle = 0
+for i in range(len(s_Names)):
+    # Names & Registry
+    name = str(s_Names[i]).strip().upper()
+    if name not in dictNames:
+        new_id_name += 1
+        dictNames[name] = new_id_name
+        listRegistry.extend([new_id_name, int(s_Registry[i])])
+    else:
+        listRegistry.extend([int(dictNames[name]), int(s_Registry[i])])
+
+    # Extracting Active Principles
+    rowStr = s_pAtivos[i]
+    if type(rowStr)==str:
+        principleList = list(map(str.upper,list(map(str.strip, rowStr.split('+')))))
+        
+        for principle in principleList:
+
+            # Active Principles Entity (Keep Unicity)
+            if principle not in dictPrinciples:
+                new_id_principle += 1
+                dictPrinciples[principle] = new_id_principle
+                # Active Principles - Relation with Name
+                list_Names_Principles.extend([int(dictNames[name]), new_id_principle]) # Here name is always on its dict
+            else:
+                list_Names_Principles.extend([int(dictNames[name]), int(dictPrinciples[principle])]) # Same
+    else:
+        continue # just ignore
+
+# Exporting
+ds_Anvisa_PrinciplesExp = pd.DataFrame(dictPrinciples.items(), columns=['nome_pAtivo','id_pAtivo'])
+ds_Anvisa_PrinciplesExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
+
+# endregion
 
 
 pass
-# Translator Test
