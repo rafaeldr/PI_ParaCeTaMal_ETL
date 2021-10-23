@@ -24,6 +24,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="DrugNetModule.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PythonETL_PI.py" />
     <Compile Include="TranslationModule.py">
       <SubType>Code</SubType>

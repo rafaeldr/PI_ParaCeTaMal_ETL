@@ -1,6 +1,7 @@
 name: py3_env
 channels:
   - conda-forge
+  - https://conda.anaconda.org/conda-forge/
   - defaults
 dependencies:
   - aiohttp=3.7.4.post0=py38h294d835_0
@@ -13,9 +14,11 @@ dependencies:
   - bleach=3.3.0=pyhd3eb1b0_0
   - bottleneck=1.3.2=py38h2a96729_1
   - brotlipy=0.7.0=py38h294d835_1001
-  - ca-certificates=2021.5.30=h5b45459_0
+  - ca-certificates=2021.10.8=h5b45459_0
   - cachetools=4.2.4=pyhd8ed1ab_0
-  - certifi=2021.5.30=py38haa244fe_0
+  - cairo=1.16.0=hb19e0ff_1008
+  - cairocffi=1.2.0=pyhd8ed1ab_0
+  - certifi=2021.10.8=py38haa244fe_0
   - cffi=1.14.5=py38hcd4344a_0
   - chardet=4.0.0=py38haa244fe_1
   - charset-normalizer=2.0.0=pyhd8ed1ab_0
@@ -24,6 +27,10 @@ dependencies:
   - decorator=5.0.9=pyhd3eb1b0_0
   - defusedxml=0.7.1=pyhd3eb1b0_0
   - entrypoints=0.3=py38_0
+  - fontconfig=2.13.1=h1989441_1005
+  - freetype=2.10.4=h546665d_1
+  - gettext=0.19.8.1=ha2e2712_1008
+  - glpk=4.65=h8ffe710_1004
   - google-api-core=2.1.0=pyhd8ed1ab_0
   - google-api-core-grpc=2.1.0=hd8ed1ab_0
   - google-auth=2.2.1=pyh6c4a22f_0
@@ -31,6 +38,7 @@ dependencies:
   - google-cloud-translate=3.4.1=pyhd8ed1ab_0
   - googleapis-common-protos=1.53.0=py38h5b57dd5_0
   - grpcio=1.38.1=py38he5377a8_0
+  - icu=68.1=h0e60522_0
   - idna=3.1=pyhd3deb0d_0
   - importlib-metadata=3.10.0=py38haa95532_0
   - importlib_metadata=3.10.0=hd3eb1b0_0
@@ -44,8 +52,17 @@ dependencies:
   - jupyter_client=6.1.12=pyhd3eb1b0_0
   - jupyter_core=4.7.1=py38haa95532_0
   - jupyterlab_pygments=0.1.2=py_0
+  - libblas=3.9.0=1_h8933c1f_netlib
+  - libcblas=3.9.0=5_hd5c7e75_netlib
+  - libffi=3.4.2=h0e60522_4
+  - libglib=2.70.0=h3be07f2_0
+  - libiconv=1.16=he774522_0
+  - liblapack=3.9.0=5_hd5c7e75_netlib
+  - liblapacke=3.9.0=5_hd5c7e75_netlib
+  - libpng=1.6.37=h1d00b33_2
   - libprotobuf=3.18.1=h7755175_0
   - libsodium=1.0.18=h62dcd97_0
+  - libxml2=2.9.12=hf5bbc77_0
   - libzlib=1.2.11=h8ffe710_1013
   - m2w64-gcc-libgfortran=5.3.0=6
   - m2w64-gcc-libs=5.3.0=7
@@ -58,6 +75,7 @@ dependencies:
   - mkl-service=2.4.0=py38h2bbff1b_0
   - mkl_fft=1.3.0=py38h277e83a_2
   - mkl_random=1.2.2=py38hf11a4ad_0
+  - mpir=3.0.0=he025d50_1002
   - msys2-conda-epoch=20160418=1
   - multidict=5.2.0=py38h294d835_0
   - nb_conda=2.2.1=py38_1
@@ -75,8 +93,10 @@ dependencies:
   - pandas=1.3.3=py38h6214cd6_0
   - pandocfilters=1.4.3=py38haa95532_1
   - parso=0.8.2=pyhd3eb1b0_0
+  - pcre=8.45=h0e60522_0
   - pickleshare=0.7.5=pyhd3eb1b0_1003
   - pip=21.1.3=py38haa95532_0
+  - pixman=0.40.0=h8ffe710_0
   - prometheus_client=0.11.0=pyhd3eb1b0_0
   - prompt-toolkit=3.0.17=pyh06a4308_0
   - proto-plus=1.19.2=pyhd8ed1ab_0
@@ -91,6 +111,7 @@ dependencies:
   - pysocks=1.7.1=py38haa244fe_3
   - python=3.8.10=hdbf39b2_7
   - python-dateutil=2.8.1=pyhd3eb1b0_0
+  - python-igraph=0.9.6=py38hc48d4f8_0
   - python_abi=3.8=2_cp38
   - pytz=2021.1=pyhd3eb1b0_0
   - pyu2f=0.1.5=pyhd8ed1ab_0
@@ -103,8 +124,10 @@ dependencies:
   - setuptools=52.0.0=py38haa95532_0
   - six=1.16.0=pyhd3eb1b0_0
   - sqlite=3.36.0=h2bbff1b_0
+  - suitesparse=5.4.0=h5d0cbe0_1
   - terminado=0.9.4=py38haa95532_0
   - testpath=0.5.0=pyhd3eb1b0_0
+  - texttable=1.6.4=pyhd8ed1ab_0
   - tornado=6.1=py38h2bbff1b_0
   - traitlets=5.0.5=pyhd3eb1b0_0
   - typing-extensions=3.10.0.2=hd8ed1ab_0
