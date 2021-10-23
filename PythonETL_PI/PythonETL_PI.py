@@ -2,6 +2,7 @@ import xmltodict
 import pandas as pd
 import numpy as np
 import collections
+import unidecode
 
 # File locations
 anvisa_file = r"..\DataSources\data_anvisa.csv"
@@ -11,6 +12,10 @@ drugbank_file = r"..\DataSources\drugbank_sample6.xml"  # Sample DrugBank with o
 exp_csv_drugs = r"..\DataSources\exp_csv_drugs.csv"
 exp_csv_interactions = r"..\DataSources\exp_csv_interactions.csv"
 exp_csv_pAtivos = r"..\DataSources\exp_csv_pAtivos.csv"
+exp_csv_Nomes = r"..\DataSources\exp_csv_Nomes.csv"
+exp_csv_Nomes_pAtivos = r"..\DataSources\exp_csv_Nomes_pAtivos.csv"
+
+exp_csv_Analysis_Nomes_pAtivos = r"..\DataSources\exp_csv_Analysis_Nomes_pAtivos.csv"
 
 
 # Importing Data Sources (AS-IS) - ANVISA
@@ -82,10 +87,10 @@ if len(s_Names) != len(s_Registry) or len(s_Names) != len(s_pAtivos): # test
     print('Unexpected error: Data Series s_names and s_Registry and s_pAtivos differ in length!')
     exit(1)
 
-dictNames = dict()
-listRegistry = list()
-dictPrinciples = dict()
-list_Names_Principles = list()
+dictNames = dict()                  # ANVISA Commercial Names
+listRegistry = list()               # ANVISA Registry Number (optional/debugging purposes)
+dictPrinciples = dict()             # ANVISA Active Principles
+list_Names_Principles = list()      # ANVISA Relation (Commercial Names <--> Active Principles)
 new_id_name = 0
 new_id_principle = 0
 for i in range(len(s_Names)):
@@ -94,9 +99,9 @@ for i in range(len(s_Names)):
     if name not in dictNames:
         new_id_name += 1
         dictNames[name] = new_id_name
-        listRegistry.extend([new_id_name, int(s_Registry[i])])
+        listRegistry.append((new_id_name, int(s_Registry[i]))) # append tuple in a list (previous bug: "extend" flat the elements)
     else:
-        listRegistry.extend([int(dictNames[name]), int(s_Registry[i])])
+        listRegistry.append((int(dictNames[name]), int(s_Registry[i])))
 
     # Extracting Active Principles
     rowStr = s_pAtivos[i]
@@ -110,15 +115,56 @@ for i in range(len(s_Names)):
                 new_id_principle += 1
                 dictPrinciples[principle] = new_id_principle
                 # Active Principles - Relation with Name
-                list_Names_Principles.extend([int(dictNames[name]), new_id_principle]) # Here name is always on its dict
+                list_Names_Principles.append((int(dictNames[name]), new_id_principle)) # Here name is always on its dict  // Tuple inside List
             else:
-                list_Names_Principles.extend([int(dictNames[name]), int(dictPrinciples[principle])]) # Same
+                list_Names_Principles.append((int(dictNames[name]), int(dictPrinciples[principle]))) # Same
     else:
         continue # just ignore
 
 # Exporting
 ds_Anvisa_PrinciplesExp = pd.DataFrame(dictPrinciples.items(), columns=['nome_pAtivo','id_pAtivo'])
 ds_Anvisa_PrinciplesExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
+
+ds_Anvisa_Names = pd.DataFrame(dictNames.items(), columns=['nomeProduto','id'])
+ds_Anvisa_Names.to_csv(exp_csv_Nomes, encoding="utf-8", index = False)
+
+ds_Anvisa_Names_Principles = pd.DataFrame(list_Names_Principles, columns=['idProduto','idPrincipio'])
+ds_Anvisa_Names_Principles.to_csv(exp_csv_Nomes_pAtivos, encoding="utf-8", index = False)
+
+
+# Search for Products With Exact Same Name of Action Principles (Analysis Task)
+list_Equal_Names_Principles = list()
+for nameStr in dictNames:
+    
+    nameStrList = list(map(str.upper,list(map(str.strip, nameStr.split('+')))))
+    if len(nameStrList) == 1:
+        # Case A : Product Name = 1 Active Principle    
+        if nameStrList[0] in dictPrinciples:
+            pass#list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr, dictPrinciples[nameStrList[0]], nameStrList[0]))
+    else:
+        # Case B : Product Name = 2-More Active Principles
+    
+        if set(nameStrList).issubset(dictPrinciples):
+            #list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))
+            #print('exists')
+            pass
+        else:
+            list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))
+
+        #match_count = 0
+        #for name in nameStrList:
+        #    # One Product With Many Names = A candidate to list of known principles
+        #    if name in dictPrinciples:
+        #        match_count += 1
+        #    pass
+        #pass
+
+    # Case *: Product Name is unique
+    pass
+
+ds_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['idProduto','nomeProduto'])#,'idPrincipio','nomePrincipio'])
+ds_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
+
 
 # endregion
 

@@ -363,6 +363,9 @@ MigrationBackup/
 FodyWeavers.xsd
 /DataSources/full database.xml
 /DataSources/exp_csv_drugs.csv
-/DataSources/exp_csv_interactions.csv
 /DataSources/exp_csv_pAtivos.csv
 /Environment/translator-project.json
+/DataSources/exp_csv_Analysis_Nomes_pAtivos.csv
+/DataSources/exp_csv_Nomes.csv
+/DataSources/exp_csv_Nomes_pAtivos.csv
+/DataSources/exp_csv_interactions.csv
