@@ -98,6 +98,7 @@ new_id_principle = 0
 for i in range(len(s_Names)):
     # Names & Registry
     name_accented = str(s_Names[i]).strip().upper()
+    name_accented = " ".join(name_accented.split())  # Normalize White Spaces
     name = unidecode.unidecode(name_accented)
     if name not in dictNames:
         new_id_name += 1
@@ -113,6 +114,7 @@ for i in range(len(s_Names)):
         principleList = list(map(str.upper,list(map(str.strip, rowStr.split('+')))))
         
         for principle in principleList:
+            principle = " ".join(principle.split())  # Normalize White Spaces
             principle_u = unidecode.unidecode(principle)
             # Active Principles Entity (Keep Unicity)
             if principle_u not in dictPrinciples:
@@ -145,7 +147,8 @@ for nameStr in dictNames:
     if len(nameStrList) == 1:
         # Case A : Product Name = 1 Active Principle    
         if nameStrList[0] in dictPrinciples:
-            pass#list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr, dictPrinciples[nameStrList[0]], nameStrList[0]))
+            #list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr, dictPrinciples[nameStrList[0]], nameStrList[0]))
+            pass
     else:
         # Case B : Product Name = 2-More Active Principles
     
@@ -154,7 +157,7 @@ for nameStr in dictNames:
             #print('exists')
             pass
         else:
-            #list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))
+            list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))
             pass
 
         #match_count = 0
