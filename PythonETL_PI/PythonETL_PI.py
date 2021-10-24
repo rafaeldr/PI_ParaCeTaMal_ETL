@@ -14,9 +14,7 @@ exp_csv_interactions = r"..\DataSources\exp_csv_interactions.csv"
 exp_csv_pAtivos = r"..\DataSources\exp_csv_pAtivos.csv"
 exp_csv_Nomes = r"..\DataSources\exp_csv_Nomes.csv"
 exp_csv_Nomes_pAtivos = r"..\DataSources\exp_csv_Nomes_pAtivos.csv"
-
-exp_csv_Analysis_Nomes_pAtivos = r"..\DataSources\exp_csv_Analysis_Nomes_pAtivos.csv"
-
+exp_csv_Analysis_Nomes_pAtivos = r"..\DataSources\exp_csv_Analysis_Nomes_pAtivos.csv" # Used for analysis
 
 # Importing Data Sources (AS-IS) - ANVISA
 df_anvisa = pd.read_csv(anvisa_file, sep=';')
@@ -53,8 +51,7 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
                          ])
 # Changed for execution time improvement
 #            data.append({'drugbank-id1':drugOrigin_id,
-#                         'drugbank-id2':drugDestiny_id
-#                         })
+#                         'drugbank-id2':drugDestiny_id})
         elif type(drugOrigin['drug-interactions']['drug-interaction']) == list:
             for drugDestiny in drugOrigin['drug-interactions']['drug-interaction']:
                 drugDestiny_id = str(drugDestiny['drugbank-id'])
@@ -126,26 +123,16 @@ for i in range(len(s_Names)):
     else:
         continue # just ignore
 
-# Exporting
-ds_Anvisa_PrinciplesExp = pd.DataFrame(dictPrinciples.items(), columns=['nome_pAtivo','id_pAtivo'])
-ds_Anvisa_PrinciplesExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
-
-ds_Anvisa_Names = pd.DataFrame(dictNames.items(), columns=['nomeProduto','id'])
-ds_Anvisa_Names.to_csv(exp_csv_Nomes, encoding="utf-8", index = False)
-
-ds_Anvisa_Names_Principles = pd.DataFrame(list_Names_Principles, columns=['idProduto','idPrincipio'])
-ds_Anvisa_Names_Principles.to_csv(exp_csv_Nomes_pAtivos, encoding="utf-8", index = False)
 
 
 # Search for Products With Exact Same Name of Action Principles (Analysis Task)
-#list_Equal_Names_Principles = list()
+list_Equal_Names_Principles = list()
 for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size changes over iterations
     nameStr = list(dictNames.keys())[i]
     nameStrList = list(map(str.upper,list(map(str.strip, nameStr.split('+')))))
     if len(nameStrList) == 1:
         # Case A : Product Name = 1 Active Principle    
         if nameStrList[0] in dictPrinciples:
-            #list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr, dictPrinciples[nameStrList[0]], nameStrList[0]))
 
             idx_number = dictNames[nameStrList[0]]
             del dictNames[nameStrList[0]] # Step 1: Remove from dictNames
@@ -155,24 +142,91 @@ for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size cha
             for item in list_Names_Principles:
                 if item[0] == idx_number:
                     list_Names_Principles.remove(item)
+    # Case B : Product Name = 2-More Active Principles
+    elif set(nameStrList).issubset(dictPrinciples): # Only the case where ALL exists as principles
+        idx_number = dictNames[nameStr] # original full name
+        del dictNames[nameStr]  # remove Name (composed)
+        key_value = list(dictNamesAccented.keys())[list(dictNamesAccented.values()).index(idx_number)] 
+        del dictNamesAccented[key_value] 
+
+        for item in list_Names_Principles:
+            if item[0] == idx_number:       # Remember: Can be already removed during Case A?
+                list_Names_Principles.remove(item)
     else:
-        # Case B : Product Name = 2-More Active Principles
-        if set(nameStrList).issubset(dictPrinciples):  # Only the case where ALL exists as principles
+        list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))  # No match (but multiple names)
 
-            idx_number = dictNames[nameStr] # original full name
-            del dictNames[nameStr]  # remove Name (composed)
-            key_value = list(dictNamesAccented.keys())[list(dictNamesAccented.values()).index(idx_number)] 
-            del dictNamesAccented[key_value] 
 
-            for item in list_Names_Principles:
-                if item[0] == idx_number:       # Remember: Can be already removed during Case A?
-                    list_Names_Principles.remove(item)
+# Manual Cleanup Section (after visual inspection)
 
-#ds_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['idProduto','nomeProduto'])#,'idPrincipio','nomePrincipio'])
-#ds_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
+# 1. Renaming
+dictPrinciples['HIDROBROMETO DE CITALOPRAM'] = dictPrinciples.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
+dictPrinciplesAccented['HIDROBROMETO DE CITALOPRAM'] = dictPrinciplesAccented.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
+dictPrinciples['OXANDROLONA'] = dictPrinciples.pop('OXANDROLONA (PORT. 344/98 LISTA C 5)')
+dictPrinciplesAccented['OXANDROLONA'] = dictPrinciplesAccented.pop('OXANDROLONA (PORT. 344/98 LISTA C 5)')
 
+# 2. Change Codes and Delete
+change_dict = {3739 : 23, 2974 : 23, 1331 : 23, 1843 : 1873, 1299 : 639, 571 : 570,
+               3872 : 2962, 1180 : 211, 2610 : 2450, 3404 : 1761, 1387 : 414, 2603 : 768, 
+               2723 : 1994, 2561 : 17, 2727 : 311, 1974 : 19, 3561 : 105, 3821 : 105, 3210 : 2924, 
+               3215 : 1239, 3782 : 169, 1837 : 37, 2928 : 20, 1424 : 20, 2716 : 1256, 3417 : 1256, 
+               9 : 1265, 3061 : 1938, 1714 : 1487, 2607 : 416, 2040 : 501, 418 : 501, 3687 : 501, 
+               2046 : 3397, 2350 : 2944}
+
+change_list = [3739, 2974, 1331, 1843, 1299, 571, 3872, 1180, 2610, 3404,
+               1387, 2603, 2723, 2561, 2727, 1974, 3561, 3821, 3210, 3215,
+               3782, 1837, 2928, 1424, 2716, 3417, 9, 3061, 1714, 2607,
+               2040, 418, 3687, 2046, 2350]
+
+# Adjust relationship
+for item in list_Names_Principles:
+    if item[1] in change_list:
+        item_temp = list(item)
+        item_temp[1] = change_dict[item_temp[1]]
+        item_temp = tuple(item_temp)
+        list_Names_Principles.remove(item)
+        list_Names_Principles.append(item_temp)
+
+# Remove principle
+for item in change_list:
+    idx_number = item
+    key_value = list(dictPrinciples.keys())[list(dictPrinciples.values()).index(idx_number)]
+    del dictPrinciples[key_value]
+    key_value = list(dictPrinciplesAccented.keys())[list(dictPrinciplesAccented.values()).index(idx_number)]
+    del dictPrinciplesAccented[key_value] 
+
+# 3. Just Delete
+delete_list = [3954, 3878, 3867, 3823, 3799, 3727, 3472, 3396, 3348, 3284, 2751, 
+               2742, 2665, 2562, 2418, 2156, 2115, 1977, 1739, 1610, 936, 632, 1281]
+
+for item in delete_list:
+    idx_number = item
+    key_value = list(dictPrinciples.keys())[list(dictPrinciples.values()).index(idx_number)]
+    del dictPrinciples[key_value]
+    key_value = list(dictPrinciplesAccented.keys())[list(dictPrinciplesAccented.values()).index(idx_number)]
+    del dictPrinciplesAccented[key_value] 
+
+# Remove relationship
+for item in list_Names_Principles:
+    if item[1] in delete_list:
+        list_Names_Principles.remove(item)
+
+
+
+
+
+# Export Files 
+ds_Anvisa_PrinciplesExp = pd.DataFrame(dictPrinciples.items(), columns=['nome_pAtivo','id_pAtivo'])
+ds_Anvisa_PrinciplesExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
+
+ds_Anvisa_Names = pd.DataFrame(dictNames.items(), columns=['nomeProduto','id'])
+ds_Anvisa_Names.to_csv(exp_csv_Nomes, encoding="utf-8", index = False)
+
+ds_Anvisa_Names_Principles = pd.DataFrame(list_Names_Principles, columns=['idProduto','idPrincipio'])
+ds_Anvisa_Names_Principles.to_csv(exp_csv_Nomes_pAtivos, encoding="utf-8", index = False)
+
+ds_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['idProduto','nomeProduto'])
+ds_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
 
 # endregion
-
 
 pass
