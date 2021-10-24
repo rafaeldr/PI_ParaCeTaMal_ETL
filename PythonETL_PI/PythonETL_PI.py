@@ -124,7 +124,8 @@ for i in range(len(s_Names)):
                 # Active Principles - Relation with Name
                 list_Names_Principles.append((int(dictNames[name]), new_id_principle)) # Here name is always on its dict  // Tuple inside List
             else:
-                list_Names_Principles.append((int(dictNames[name]), int(dictPrinciples[principle_u]))) # Same
+                if (int(dictNames[name]), int(dictPrinciples[principle_u])) not in list_Names_Principles:
+                    list_Names_Principles.append((int(dictNames[name]), int(dictPrinciples[principle_u]))) # Same
     else:
         continue # just ignore
 
@@ -148,6 +149,18 @@ for nameStr in dictNames:
         # Case A : Product Name = 1 Active Principle    
         if nameStrList[0] in dictPrinciples:
             #list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr, dictPrinciples[nameStrList[0]], nameStrList[0]))
+
+            idx_number = dictNames[nameStrList[0]]
+            del dictNames[nameStrList[0]] # Step 1: Remove from dictNames
+            key_value = list(dictNamesAccented.keys())[list(dictNamesAccented.values()).index(idx_number)] # Required since key_value can have different accentuation
+            del dictNamesAccented[nameStrList[0]] # Step 2: Remove from dictNamesAccented
+
+            for item in list_Names_Principles:
+                if item[0] == idx_number:
+                    list_Names_Principles.remove(item)
+
+                pass
+
             pass
     else:
         # Case B : Product Name = 2-More Active Principles
