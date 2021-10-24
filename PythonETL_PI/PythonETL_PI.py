@@ -51,7 +51,7 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
             data.append([drugOrigin_id,
                          drugDestiny_id
                          ])
-# This way impact negatively the negative
+# Changed for execution time improvement
 #            data.append({'drugbank-id1':drugOrigin_id,
 #                         'drugbank-id2':drugDestiny_id
 #                         })
@@ -61,9 +61,6 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
                 data.append([drugOrigin_id,
                              drugDestiny_id
                              ])
-#                data.append({'drugbank-id1':drugOrigin_id,
-#                             'drugbank-id2':drugDestiny_id
-#                             })
 
 # Removing reversed duplicates
 data = {tuple(sorted(item)) for item in data}
@@ -141,9 +138,9 @@ ds_Anvisa_Names_Principles.to_csv(exp_csv_Nomes_pAtivos, encoding="utf-8", index
 
 
 # Search for Products With Exact Same Name of Action Principles (Analysis Task)
-list_Equal_Names_Principles = list()
-for nameStr in dictNames:
-    
+#list_Equal_Names_Principles = list()
+for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size changes over iterations
+    nameStr = list(dictNames.keys())[i]
     nameStrList = list(map(str.upper,list(map(str.strip, nameStr.split('+')))))
     if len(nameStrList) == 1:
         # Case A : Product Name = 1 Active Principle    
@@ -153,39 +150,26 @@ for nameStr in dictNames:
             idx_number = dictNames[nameStrList[0]]
             del dictNames[nameStrList[0]] # Step 1: Remove from dictNames
             key_value = list(dictNamesAccented.keys())[list(dictNamesAccented.values()).index(idx_number)] # Required since key_value can have different accentuation
-            del dictNamesAccented[nameStrList[0]] # Step 2: Remove from dictNamesAccented
+            del dictNamesAccented[key_value] # Step 2: Remove from dictNamesAccented
 
             for item in list_Names_Principles:
                 if item[0] == idx_number:
                     list_Names_Principles.remove(item)
-
-                pass
-
-            pass
     else:
         # Case B : Product Name = 2-More Active Principles
-    
-        if set(nameStrList).issubset(dictPrinciples):
-            #list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))
-            #print('exists')
-            pass
-        else:
-            list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))
-            pass
+        if set(nameStrList).issubset(dictPrinciples):  # Only the case where ALL exists as principles
 
-        #match_count = 0
-        #for name in nameStrList:
-        #    # One Product With Many Names = A candidate to list of known principles
-        #    if name in dictPrinciples:
-        #        match_count += 1
-        #    pass
-        #pass
+            idx_number = dictNames[nameStr] # original full name
+            del dictNames[nameStr]  # remove Name (composed)
+            key_value = list(dictNamesAccented.keys())[list(dictNamesAccented.values()).index(idx_number)] 
+            del dictNamesAccented[key_value] 
 
-    # Case *: Product Name is unique
-    pass
+            for item in list_Names_Principles:
+                if item[0] == idx_number:       # Remember: Can be already removed during Case A?
+                    list_Names_Principles.remove(item)
 
-ds_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['idProduto','nomeProduto'])#,'idPrincipio','nomePrincipio'])
-ds_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
+#ds_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['idProduto','nomeProduto'])#,'idPrincipio','nomePrincipio'])
+#ds_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
 
 
 # endregion
