@@ -88,17 +88,21 @@ if len(s_Names) != len(s_Registry) or len(s_Names) != len(s_pAtivos): # test
     exit(1)
 
 dictNames = dict()                  # ANVISA Commercial Names
+dictNamesAccented = dict()                  # Same WITH accentuation
 listRegistry = list()               # ANVISA Registry Number (optional/debugging purposes)
 dictPrinciples = dict()             # ANVISA Active Principles
+dictPrinciplesAccented = dict()             # Same WITH accentuation
 list_Names_Principles = list()      # ANVISA Relation (Commercial Names <--> Active Principles)
 new_id_name = 0
 new_id_principle = 0
 for i in range(len(s_Names)):
     # Names & Registry
-    name = str(s_Names[i]).strip().upper()
+    name_accented = str(s_Names[i]).strip().upper()
+    name = unidecode.unidecode(name_accented)
     if name not in dictNames:
         new_id_name += 1
         dictNames[name] = new_id_name
+        dictNamesAccented[name_accented] = new_id_name
         listRegistry.append((new_id_name, int(s_Registry[i]))) # append tuple in a list (previous bug: "extend" flat the elements)
     else:
         listRegistry.append((int(dictNames[name]), int(s_Registry[i])))
@@ -109,15 +113,16 @@ for i in range(len(s_Names)):
         principleList = list(map(str.upper,list(map(str.strip, rowStr.split('+')))))
         
         for principle in principleList:
-
+            principle_u = unidecode.unidecode(principle)
             # Active Principles Entity (Keep Unicity)
-            if principle not in dictPrinciples:
+            if principle_u not in dictPrinciples:
                 new_id_principle += 1
-                dictPrinciples[principle] = new_id_principle
+                dictPrinciples[principle_u] = new_id_principle
+                dictPrinciplesAccented[principle] = new_id_principle
                 # Active Principles - Relation with Name
                 list_Names_Principles.append((int(dictNames[name]), new_id_principle)) # Here name is always on its dict  // Tuple inside List
             else:
-                list_Names_Principles.append((int(dictNames[name]), int(dictPrinciples[principle]))) # Same
+                list_Names_Principles.append((int(dictNames[name]), int(dictPrinciples[principle_u]))) # Same
     else:
         continue # just ignore
 
@@ -149,7 +154,8 @@ for nameStr in dictNames:
             #print('exists')
             pass
         else:
-            list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))
+            #list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))
+            pass
 
         #match_count = 0
         #for name in nameStrList:
