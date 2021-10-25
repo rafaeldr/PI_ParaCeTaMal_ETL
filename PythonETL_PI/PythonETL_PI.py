@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 import collections
 import unidecode
+import TranslationModule
+
+# Parameters
+callTranslator = False
 
 # File locations
 anvisa_file = r"..\DataSources\data_anvisa.csv"
@@ -12,8 +16,10 @@ drugbank_file = r"..\DataSources\drugbank_sample6.xml"  # Sample DrugBank with o
 exp_csv_drugs = r"..\DataSources\exp_csv_drugs.csv"
 exp_csv_interactions = r"..\DataSources\exp_csv_interactions.csv"
 exp_csv_pAtivos = r"..\DataSources\exp_csv_pAtivos.csv"
+exp_csv_pAtivosAccented = r"..\DataSources\exp_csv_pAtivosAccented.csv"
 exp_csv_Nomes = r"..\DataSources\exp_csv_Nomes.csv"
 exp_csv_Nomes_pAtivos = r"..\DataSources\exp_csv_Nomes_pAtivos.csv"
+exp_csv_pAtivos_Traducoes = r"..\DataSources\exp_csv_pAtivos_Traducoes.csv"
 exp_csv_Analysis_Nomes_pAtivos = r"..\DataSources\exp_csv_Analysis_Nomes_pAtivos.csv" # Used for analysis
 
 # Importing Data Sources (AS-IS) - ANVISA
@@ -77,7 +83,8 @@ s_Names = df_anvisa['NOME_PRODUTO']  # Series
 s_Registry = df_anvisa['NUMERO_REGISTRO_PRODUTO']  
 s_pAtivos = df_anvisa['PRINCIPIO_ATIVO']  
 
-if len(s_Names) != len(s_Registry) or len(s_Names) != len(s_pAtivos): # test
+# Test
+if len(s_Names) != len(s_Registry) or len(s_Names) != len(s_pAtivos):
     print('Unexpected error: Data Series s_names and s_Registry and s_pAtivos differ in length!')
     exit(1)
 
@@ -211,21 +218,37 @@ for item in list_Names_Principles:
         list_Names_Principles.remove(item)
 
 
+# Prepare DataFrames
+df_Anvisa_PrinciplesAccented = pd.DataFrame(dictPrinciplesAccented.items(), columns=['nome_pAtivo','id_pAtivo'])
+df_Anvisa_Principles = pd.DataFrame(dictPrinciples.items(), columns=['nome_pAtivo','id_pAtivo'])
+df_Anvisa_Names = pd.DataFrame(dictNames.items(), columns=['nomeProduto','id'])
+df_Anvisa_Names_Principles = pd.DataFrame(list_Names_Principles, columns=['idProduto','idPrincipio'])
+df_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['idProduto','nomeProduto'])
 
+# Translation Section Call (Run Once) - "Limited Resource" [Google Translator API]
+if callTranslator:
+    s_pAtivos = df_Anvisa_PrinciplesAccented['nome_pAtivo']  # Series
+    s_pAtivosTranslated = TranslationModule.BatchTranslate(s_pAtivos)
+    s_pAtivosTranslated.to_csv(exp_csv_pAtivos_Traducoes, index = False)
+    df_PrinciplesTraducoes = s_pAtivosTranslated
+else:
+    df_PrinciplesTraducoes = pd.read_csv(exp_csv_pAtivos_Traducoes, sep=',')
 
+# Test
+if len(df_Anvisa_PrinciplesAccented) != len(df_PrinciplesTraducoes):
+    print("Unexpected error: Dataframes doesn't match in length! Translations failed or data changed shape since last batch translation.")
+    exit(1)
 
-# Export Files 
-ds_Anvisa_PrinciplesExp = pd.DataFrame(dictPrinciples.items(), columns=['nome_pAtivo','id_pAtivo'])
-ds_Anvisa_PrinciplesExp.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
+# Adjust DataFrames
+df_Anvisa_PrinciplesAccented['translated_pAtivo'] = df_PrinciplesTraducoes
+df_Anvisa_Principles['translated_pAtivo'] = df_PrinciplesTraducoes
 
-ds_Anvisa_Names = pd.DataFrame(dictNames.items(), columns=['nomeProduto','id'])
-ds_Anvisa_Names.to_csv(exp_csv_Nomes, encoding="utf-8", index = False)
-
-ds_Anvisa_Names_Principles = pd.DataFrame(list_Names_Principles, columns=['idProduto','idPrincipio'])
-ds_Anvisa_Names_Principles.to_csv(exp_csv_Nomes_pAtivos, encoding="utf-8", index = False)
-
-ds_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['idProduto','nomeProduto'])
-ds_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
+# Export DataFrames
+df_Anvisa_PrinciplesAccented.to_csv(exp_csv_pAtivosAccented, encoding="utf-8", index = False)
+df_Anvisa_Principles.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
+df_Anvisa_Names.to_csv(exp_csv_Nomes, encoding="utf-8", index = False)
+df_Anvisa_Names_Principles.to_csv(exp_csv_Nomes_pAtivos, encoding="utf-8", index = False)
+df_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
 
 # endregion
 
