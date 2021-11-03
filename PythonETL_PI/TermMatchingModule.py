@@ -3,6 +3,8 @@ import numpy as np
 import collections
 from typing import List
 
+# Parameters
+silent = False
 
 def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Series, data2_Ids : pd.Series) -> pd.Series:
 	
@@ -22,10 +24,9 @@ def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Serie
 	# Iterate Cheking
 	for i in range(len(data1_Names)):
 
+		if not silent: print('Processing Term Matching: '+str(i)+'of '+str(len(data1_Names))+'\r', end="")
 		i_tokens = list(map(str.strip, str(data1_Names[i]).replace('-', ' ').replace('+', ' ').replace(',', ' ').split()))
 		candidatesVector = [0] * len(data2_Names) 
-
-		print('Processing Term Matching: '+str(i)+'of '+str(len(data1_Names))) # Keep track of progress
 
 		for j in range(len(data2_Names)):
 
@@ -43,7 +44,8 @@ def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Serie
 		# Set results
 		resultsVector[i] = max(candidatesVector)
 		indexVector[i] = max(range(len(candidatesVector)), key=candidatesVector.__getitem__)
-	
+	if not silent: print()	
+
 	# Translate i/j indexes to ids
 	pass
 

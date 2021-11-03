@@ -7,12 +7,19 @@ import TranslationModule
 import TermMatchingModule
 
 # Parameters
-callTranslator = False   # Keep false unless required (implies in costs from GoogleCloud)
+callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
+callTermMatching = True # Keep false unless required (implies in high computation time)
+prodEnvironment = False # False for "development/test"; true for "production" execution
+silent = False          # Display track of progress info (when False)
+TermMatchingModule.silent = silent
+TranslationModule.silent = silent
 
 # File locations
 anvisa_file = r"..\DataSources\data_anvisa.csv"
-#drugbank_file = r"..\DataSources\full database.xml"    # Full DrugBank - Takes ~6 min to parse
-drugbank_file = r"..\DataSources\drugbank_sample6.xml"  # Sample DrugBank with only 6 drugs
+if prodEnvironment:
+    drugbank_file = r"..\DataSources\full database.xml"    # Full DrugBank - Takes ~6 min to parse
+else:
+    drugbank_file = r"..\DataSources\drugbank_sample6.xml"  # Sample DrugBank with only 6 drugs
 # Export
 exp_csv_drugs = r"..\DataSources\exp_csv_drugs.csv"
 exp_csv_interactions = r"..\DataSources\exp_csv_interactions.csv"
@@ -24,13 +31,16 @@ exp_csv_pAtivos_Traducoes = r"..\DataSources\exp_csv_pAtivos_Traducoes.csv"
 exp_csv_Analysis_Nomes_pAtivos = r"..\DataSources\exp_csv_Analysis_Nomes_pAtivos.csv" # Used for analysis
 
 # Importing Data Sources (AS-IS) - ANVISA
+if not silent: print('Importing Data Sources (AS-IS) - ANVISA')
 df_anvisa = pd.read_csv(anvisa_file, sep=';')
 # Importing Data Sources (AS-IS) - DrugBank
+if not silent: print('Importing Data Sources (AS-IS) - DrugBank') 
 with open(drugbank_file, encoding='utf-8') as fd:
     drugbank_dict = xmltodict.parse(fd.read())
 
 # region DrugBank
 # Drugs - Extraction
+if not silent: print('DrugBank - Extracting Names') 
 data = []
 for drug in drugbank_dict['drugbank']['drug']:
     if type(drug['drugbank-id']) == list:
@@ -43,6 +53,7 @@ for drug in drugbank_dict['drugbank']['drug']:
 df_drugs = pd.DataFrame(data)
 
 # Interactions - Extraction
+if not silent: print('DrugBank - Extracting Interactions') 
 data = []
 for drugOrigin in drugbank_dict['drugbank']['drug']:
     if type(drugOrigin['drugbank-id']) == list:
@@ -67,10 +78,12 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
                              ])
 
 # Removing reversed duplicates
+if not silent: print('DrugBank - Interactions - Removing Reserved Duplicates') 
 data = {tuple(sorted(item)) for item in data}
 df_interactions = pd.DataFrame(data, columns=['drugbank-id1','drugbank-id2'])
 
 # Exporting
+if not silent: print('DrugBank - Exporting CSVs') 
 df_drugs.to_csv(exp_csv_drugs, index = False)
 df_interactions.to_csv(exp_csv_interactions, index = False)
 
@@ -99,6 +112,7 @@ new_id_name = 0
 new_id_principle = 0
 for i in range(len(s_Names)):
     # Names & Registry
+    if not silent: print('ANVISA - Processing Names and Active Principles: '+str(i)+' of '+str(len(s_Names))+'\r', end="")
     name_accented = str(s_Names[i]).strip().upper()
     name_accented = " ".join(name_accented.split())  # Normalize White Spaces
     name = unidecode.unidecode(name_accented)
@@ -130,12 +144,13 @@ for i in range(len(s_Names)):
                     list_Names_Principles.append((int(dictNames[name]), int(dictPrinciples[principle_u]))) # Same
     else:
         continue # just ignore
-
+if not silent: print()
 
 
 # Search for Products With Exact Same Name of Action Principles (Analysis Task)
 list_Equal_Names_Principles = list()
 for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size changes over iterations
+    if not silent: print('ANVISA - Analyzing Names and Active Principles: (reversed) '+str(i)+' of '+str(len(list(dictNames.keys())))+'\r', end="")
     nameStr = list(dictNames.keys())[i]
     nameStrList = list(map(str.upper,list(map(str.strip, nameStr.split('+')))))
     if len(nameStrList) == 1:
@@ -162,10 +177,11 @@ for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size cha
                 list_Names_Principles.remove(item)
     else:
         list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))  # No match (but multiple names)
-
+if not silent: print()
 
 # Manual Cleanup Section (after visual inspection)
 
+if not silent: print('ANVISA - Executing Manual Cleanup Procedures') 
 # 1. Renaming
 dictPrinciples['HIDROBROMETO DE CITALOPRAM'] = dictPrinciples.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
 dictPrinciplesAccented['HIDROBROMETO DE CITALOPRAM'] = dictPrinciplesAccented.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
@@ -220,6 +236,7 @@ for item in list_Names_Principles:
 
 
 # Prepare DataFrames
+if not silent: print('ANVISA - Creating DataFrames') 
 df_Anvisa_PrinciplesAccented = pd.DataFrame(dictPrinciplesAccented.items(), columns=['nome_pAtivo','id_pAtivo'])
 df_Anvisa_Principles = pd.DataFrame(dictPrinciples.items(), columns=['nome_pAtivo','id_pAtivo'])
 df_Anvisa_Names = pd.DataFrame(dictNames.items(), columns=['nomeProduto','id'])
@@ -228,11 +245,13 @@ df_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['
 
 # Translation Section Call (Run Once) - "Limited Resource" [Google Translator API]
 if callTranslator:
+    if not silent: print('ANVISA - Calling Translation Module') 
     s_pAtivos = df_Anvisa_PrinciplesAccented['nome_pAtivo']  # Series
     s_pAtivosTranslated = TranslationModule.BatchTranslate(s_pAtivos)
     s_pAtivosTranslated.to_csv(exp_csv_pAtivos_Traducoes, index = False)
     df_PrinciplesTraducoes = s_pAtivosTranslated
 else:
+    if not silent: print('ANVISA - Loading Translations') 
     df_PrinciplesTraducoes = pd.read_csv(exp_csv_pAtivos_Traducoes, sep=',')
 
 # Test
@@ -245,6 +264,7 @@ df_Anvisa_PrinciplesAccented['translated_pAtivo'] = df_PrinciplesTraducoes
 df_Anvisa_Principles['translated_pAtivo'] = df_PrinciplesTraducoes
 
 # Export DataFrames
+if not silent: print('ANVISA - Exporting CSVs')
 df_Anvisa_PrinciplesAccented.to_csv(exp_csv_pAtivosAccented, encoding="utf-8", index = False)
 df_Anvisa_Principles.to_csv(exp_csv_pAtivos, encoding="utf-8", index = False)
 df_Anvisa_Names.to_csv(exp_csv_Nomes, encoding="utf-8", index = False)
@@ -254,6 +274,7 @@ df_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8
 # endregion
 
 # Nomenclature Pair Matching Module Call
+if not silent: print('DrugBank + ANVISA - Calling Term Matching Module')
 TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
 
 pass
