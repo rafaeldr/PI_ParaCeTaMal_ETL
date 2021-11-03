@@ -4,9 +4,10 @@ import numpy as np
 import collections
 import unidecode
 import TranslationModule
+import TermMatchingModule
 
 # Parameters
-callTranslator = False
+callTranslator = False   # Keep false unless required (implies in costs from GoogleCloud)
 
 # File locations
 anvisa_file = r"..\DataSources\data_anvisa.csv"
@@ -37,7 +38,7 @@ for drug in drugbank_dict['drugbank']['drug']:
     else:
         id = str(drug['drugbank-id']['#text'])
     data.append({'drugbank-id':id,
-                 'name':str(drug['name'])
+                 'name':str(drug['name']).strip().upper()
                  })
 df_drugs = pd.DataFrame(data)
 
@@ -251,5 +252,8 @@ df_Anvisa_Names_Principles.to_csv(exp_csv_Nomes_pAtivos, encoding="utf-8", index
 df_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
 
 # endregion
+
+# Nomenclature Pair Matching Module Call
+TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
 
 pass
