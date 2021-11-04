@@ -75,6 +75,7 @@ def tokenizedMatch(names1 : List[str], names2 : List[str]) -> float:
 	# Array to keep results -> So we can chech BEST arrangement
 	valuesMatrix = np.zeros((len(names1), len(names2)), dtype=int)
 	valuesMatrixNormalized = np.zeros((len(names1), len(names2)), dtype=float)
+	valuesMatrixTokenLength = np.zeros((len(names1), len(names2)), dtype=int)
 
 	for i in range(len(names1)):
 		tokenL1 = names1[i]
@@ -88,7 +89,8 @@ def tokenizedMatch(names1 : List[str], names2 : List[str]) -> float:
 				continue
 			value = strMatchShift(tokenL1,tokenL2)
 			valuesMatrix[i,j] = value
-			valuesMatrixNormalized[i,j] = (value/len(tokenL1)) if (len(tokenL1) > len(tokenL2)) else (value/len(tokenL2))
+			valuesMatrixTokenLength[i,j] = len(tokenL1) if (len(tokenL1) > len(tokenL2)) else len(tokenL2)
+			valuesMatrixNormalized[i,j] = value/valuesMatrixTokenLength[i,j]
 
 	# Choose best arrangement
 	numTokens = min(len(names1), len(names2))
@@ -99,7 +101,8 @@ def tokenizedMatch(names1 : List[str], names2 : List[str]) -> float:
 		ind = np.unravel_index(np.argmax(valuesMatrixNormalized, axis=None), valuesMatrixNormalized.shape)
 
 		finalScore += valuesMatrix[ind]
-		sumLength += (valuesMatrix[ind]/valuesMatrixNormalized[ind]) # Recover length arithmetically | Can Divide by Zero -> Generating 'nan' & Warning
+		#sumLength += (valuesMatrix[ind]/valuesMatrixNormalized[ind]) # Recover length arithmetically | Can Divide by Zero -> Generating 'nan' & Warning
+		sumLength += valuesMatrixTokenLength[ind]
 
 		# Zeros on its line and column
 		valuesMatrixNormalized[ind[0],:] = 0
