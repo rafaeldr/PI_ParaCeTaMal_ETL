@@ -5,8 +5,9 @@ from typing import List
 
 # Parameters
 silent = False
+threshold = 0
 
-def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Series, data2_Ids : pd.Series) -> pd.Series:
+def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Series, data2_Ids : pd.Series) -> pd.DataFrame:
 	
 	# Conceptually: Cross Matrix
 	# Implications -> NOT Symmetric
@@ -20,11 +21,12 @@ def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Serie
 	# Results Structure
 	resultsVector = [0] * len(data1_Names)
 	indexVector = [-1] * len(data1_Names)
+	returnDataFrame = []
 
 	# Iterate Cheking
 	for i in range(len(data1_Names)):
 
-		if not silent: print('Processing Term Matching: '+str(i)+'of '+str(len(data1_Names))+'\r', end="")
+		if not silent: print('Processing Term Matching: '+str(i+1)+' of '+str(len(data1_Names))+'\r', end="")
 		i_tokens = list(map(str.strip, str(data1_Names[i]).replace('-', ' ').replace('+', ' ').replace(',', ' ').split()))
 		candidatesVector = [0] * len(data2_Names) 
 
@@ -41,15 +43,27 @@ def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Serie
 			# Tokenized Search
 			candidatesVector[j] = tokenizedMatch(i_tokens, j_tokens)
 		
-		# Set results
+		# Set results (local indexes)
 		resultsVector[i] = max(candidatesVector)
 		indexVector[i] = max(range(len(candidatesVector)), key=candidatesVector.__getitem__)
+
+		# Prepare Results for Function RETURN
+		
+		# Translate i/j indexes to ids
+		# DrugBank id | ANVISA Principle id | Value
+		# Considering Threshold
+		if resultsVector[i] >= threshold:
+			returnDataFrame.append([data1_Ids[i],
+									data1_Names[i],
+									data2_Ids[indexVector[i]],
+									data2_Names[indexVector[i]],
+									resultsVector[i]])
+		
 	if not silent: print()	
 
-	# Translate i/j indexes to ids
-	pass
+	df_return = pd.DataFrame(returnDataFrame, columns=['drugbank-id','name_drugbank','id_pAtivo','name_anvisa','matchingValue'])
 
-	return 1
+	return df_return
 
 # Break names into tokens and try to find best match value
 def tokenizedMatch(names1 : List[str], names2 : List[str]) -> float:
@@ -151,9 +165,3 @@ def strMatch(str1 : str, str2 : str) -> int:
 	#print(str1+' '+str2+' '+str(charMatch)) # DEBUG
 
 	return charMatch
-
-
-#strMatchShift('pukabananada','bana')
-#print(tokenizedMatch(['capim','limao','qualquer'], ['limao','capm']))
-
-pass

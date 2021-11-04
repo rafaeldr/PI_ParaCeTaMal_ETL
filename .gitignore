@@ -370,3 +370,4 @@ FodyWeavers.xsd
 /DataSources/exp_csv_Nomes_pAtivos.csv
 /DataSources/exp_csv_interactions.csv
 /DataSources/exp_csv_pAtivosAccented.csv
+/DataSources/exp_csv_DrugBank_Anvisa.csv

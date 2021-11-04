@@ -29,6 +29,7 @@ exp_csv_Nomes = r"..\DataSources\exp_csv_Nomes.csv"
 exp_csv_Nomes_pAtivos = r"..\DataSources\exp_csv_Nomes_pAtivos.csv"
 exp_csv_pAtivos_Traducoes = r"..\DataSources\exp_csv_pAtivos_Traducoes.csv"
 exp_csv_Analysis_Nomes_pAtivos = r"..\DataSources\exp_csv_Analysis_Nomes_pAtivos.csv" # Used for analysis
+exp_csv_DrugBank_Anvisa = r"..\DataSources\exp_csv_DrugBank_Anvisa.csv"
 
 # Importing Data Sources (AS-IS) - ANVISA
 if not silent: print('Importing Data Sources (AS-IS) - ANVISA')
@@ -78,7 +79,7 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
                              ])
 
 # Removing reversed duplicates
-if not silent: print('DrugBank - Interactions - Removing Reserved Duplicates') 
+if not silent: print('DrugBank - Interactions - Removing Reversed Duplicates') 
 data = {tuple(sorted(item)) for item in data}
 df_interactions = pd.DataFrame(data, columns=['drugbank-id1','drugbank-id2'])
 
@@ -112,7 +113,7 @@ new_id_name = 0
 new_id_principle = 0
 for i in range(len(s_Names)):
     # Names & Registry
-    if not silent: print('ANVISA - Processing Names and Active Principles: '+str(i)+' of '+str(len(s_Names))+'\r', end="")
+    if not silent: print('ANVISA - Processing Names and Active Principles: '+str(i+1)+' of '+str(len(s_Names))+'\r', end="")
     name_accented = str(s_Names[i]).strip().upper()
     name_accented = " ".join(name_accented.split())  # Normalize White Spaces
     name = unidecode.unidecode(name_accented)
@@ -150,7 +151,7 @@ if not silent: print()
 # Search for Products With Exact Same Name of Action Principles (Analysis Task)
 list_Equal_Names_Principles = list()
 for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size changes over iterations
-    if not silent: print('ANVISA - Analyzing Names and Active Principles: (reversed) '+str(i)+' of '+str(len(list(dictNames.keys())))+'\r', end="")
+    if not silent: print('ANVISA - Analyzing Names and Active Principles: (reversed) '+str(i+1)+' of '+str(len(list(dictNames.keys())))+'\r', end="")
     nameStr = list(dictNames.keys())[i]
     nameStrList = list(map(str.upper,list(map(str.strip, nameStr.split('+')))))
     if len(nameStrList) == 1:
@@ -274,7 +275,14 @@ df_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8
 # endregion
 
 # Nomenclature Pair Matching Module Call
-if not silent: print('DrugBank + ANVISA - Calling Term Matching Module')
-TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
+if callTermMatching:
+    if not silent: print('DrugBank + ANVISA - Calling Term Matching Module')
+    df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
+    df_DrugBank_Anvisa.to_csv(exp_csv_DrugBank_Anvisa, index = False)
+else:
+    if not silent: print('ANVISA - Loading Preprocessed Term Matching') 
+    df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
+
+print()
 
 pass

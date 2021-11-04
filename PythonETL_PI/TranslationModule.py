@@ -18,7 +18,7 @@ def BatchTranslate(data : pd.Series) -> pd.Series:
 	
 	for i in range(len(data)):
 	#for i in range(10): # Testing purpose
-		if not silent: print('ANVISA - Tranlating Terms: '+str(i)+' of '+str(len(data))+'\r', end="")
+		if not silent: print('ANVISA - Tranlating Terms: '+str(i+1)+' of '+str(len(data))+'\r', end="")
 		translation = translate_client.translate(str(data[i]), target_language='en', source_language='pt-br')
 		s_Translated.append(translation['translatedText'])
 	if not silent: print()
