@@ -5,6 +5,7 @@ import collections
 import unidecode
 import TranslationModule
 import TermMatchingModule
+import SQLModule as sql
 
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
@@ -284,10 +285,16 @@ else:
     if not silent: print('ANVISA - Loading Preprocessed Term Matching') 
     df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
 
-print()
+
 
 # Exporting as SQL Scripts
 
+sqlDrugBank_Name = sql.SQLScripting(df_drugs,'DrugBank_Nome')
+
+
 # BigTable Section
 
+
+
+print()
 pass
