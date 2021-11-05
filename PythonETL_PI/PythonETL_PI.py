@@ -48,7 +48,8 @@ for drug in drugbank_dict['drugbank']['drug']:
         id = str(drug['drugbank-id'][0]['#text'])
     else:
         id = str(drug['drugbank-id']['#text'])
-    data.append({'drugbank-id':id,
+    id = id[2:] # Adjust ID to integer (not varchar/string)
+    data.append({'drugbank-id':int(id),
                  'name':str(drug['name']).strip().upper()
                  })
 df_drugs = pd.DataFrame(data)
