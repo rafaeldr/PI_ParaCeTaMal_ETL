@@ -1,7 +1,7 @@
 import pandas as pd
 
 class SQLExport:
-    
+
     def get_insert_query_from_df(df, dest_table):
 
         insert = """
