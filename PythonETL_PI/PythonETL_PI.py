@@ -48,7 +48,8 @@ for drug in drugbank_dict['drugbank']['drug']:
         id = str(drug['drugbank-id'][0]['#text'])
     else:
         id = str(drug['drugbank-id']['#text'])
-    data.append({'drugbank-id':id,
+    id = id[2:] # Adjust ID to integer (not varchar/string)
+    data.append({'drugbank-id':int(id),
                  'name':str(drug['name']).strip().upper()
                  })
 df_drugs = pd.DataFrame(data)
@@ -65,8 +66,8 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
     if drugOrigin['drug-interactions']!=None:
         if drugOrigin['drug-interactions']['drug-interaction'] == collections.OrderedDict: # only 1 registry
             drugDestiny_id = str(drugOrigin['drug-interactions']['drug-interaction']['drugbank-id'])
-            data.append([drugOrigin_id,
-                         drugDestiny_id
+            data.append([int(drugOrigin_id[2:]),
+                         int(drugDestiny_id[2:])
                          ])
 # Changed for execution time improvement
 #            data.append({'drugbank-id1':drugOrigin_id,
@@ -74,8 +75,8 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
         elif type(drugOrigin['drug-interactions']['drug-interaction']) == list:
             for drugDestiny in drugOrigin['drug-interactions']['drug-interaction']:
                 drugDestiny_id = str(drugDestiny['drugbank-id'])
-                data.append([drugOrigin_id,
-                             drugDestiny_id
+                data.append([int(drugOrigin_id[2:]),
+                             int(drugDestiny_id[2:])
                              ])
 
 # Removing reversed duplicates
