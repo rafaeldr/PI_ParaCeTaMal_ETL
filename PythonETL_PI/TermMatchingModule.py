@@ -42,6 +42,7 @@ def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Serie
 			
 			# Tokenized Search
 			candidatesVector[j] = tokenizedMatch(i_tokens, j_tokens)
+			candidatesVector[j] = candidatesVector[j]/len(data1_Names[i]) if (data1_Names[i]>data2_Names[j]) else candidatesVector[j]/len(data2_Names[j])
 		
 		# Set results (local indexes)
 		resultsVector[i] = max(candidatesVector)
@@ -102,14 +103,14 @@ def tokenizedMatch(names1 : List[str], names2 : List[str]) -> float:
 
 		finalScore += valuesMatrix[ind]
 		#sumLength += (valuesMatrix[ind]/valuesMatrixNormalized[ind]) # Recover length arithmetically | Can Divide by Zero -> Generating 'nan' & Warning
-		sumLength += valuesMatrixTokenLength[ind]
+		#sumLength += valuesMatrixTokenLength[ind]
 
 		# Zeros on its line and column
 		valuesMatrixNormalized[ind[0],:] = 0
 		valuesMatrixNormalized[:,ind[1]] = 0
 		# Repeat MIN times
 
-	finalScore = finalScore/sumLength
+	#finalScore = finalScore/sumLength
 	
 	return finalScore
 
