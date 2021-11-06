@@ -10,7 +10,7 @@ class SQLScripting:
     fk_list = [] # Empty list means no FK
     fk_ext_table = [] # External table referenced by FK; "ordered" | Validity of correspondence will not be checked
     fk_ext_column = [] # External columns referenced by FK; "ordered" | Validity of correspondence will not be checked
-    
+    indent = ' ' * 7
 
     # Map pd.dtype to MySQL Type
     dict_type = {'INT32': 'INT',
@@ -27,12 +27,13 @@ class SQLScripting:
         self.checkColumnNames(column_names, pk_list, fk_list, fk_ext_table, fk_ext_column)
         self.types_list = types_list if (types_list) else self.inferDataTypes()
         self.createSQL = self.gen_CreateTableSQL()
+        self.insertSQL = self.gen_InsertSQL()
 
 
     def gen_CreateTableSQL(self):
 
-        create_string = "CREATE TABLE '{dest_table}' (\n".format(dest_table=self.table_name)
-        indent = ' ' * 4
+        create_string = "CREATE TABLE {dest_table} (\n".format(dest_table=self.table_name)
+        indent = self.indent
 
         columns_string = ""
         for i in range(len(self.df.columns)):
@@ -59,23 +60,25 @@ class SQLScripting:
         return return_string
 
 
-    def gen_InsertSQL(df, dest_table):
+    def gen_InsertSQL(self):
 
-        insert = """
-        INSERT INTO `{dest_table}` (
-            """.format(dest_table=dest_table)
+        insert_string = "INSERT INTO {dest_table} (".format(dest_table=self.table_name)
+        indent = self.indent
 
-        columns_string = str(list(df.columns))[1:-1]
-        columns_string = re.sub(r' ', '\n        ', columns_string)
-        columns_string = re.sub(r'\'', '', columns_string)
+        columns_string = ""
 
-        values_string = ''
+        for col_name in self.df.columns:
+            columns_string += col_name + ', '
+        columns_string = columns_string[:-2] + ')\n'
+        
+        values_string = 'VALUES\n'
 
-        for row in df.itertuples(index=False,name=None):
-            values_string += re.sub(r'nan', 'null', str(row))
+        for row in self.df.itertuples(index=False,name=None):
+            values_string += indent + re.sub(r'nan', 'NULL', str(row))
             values_string += ',\n'
 
-        return insert + columns_string + ')\n     VALUES\n' + values_string[:-2] + ';'
+        result_string = insert_string + columns_string + values_string[:-2] + ';'
+        return result_string
 
 
     # Infer datatypes when not provided user call
@@ -133,9 +136,3 @@ class SQLScripting:
         self.fk_ext_table = fk_ext_table
         self.fk_ext_column = fk_ext_column
         return
-
-
-exp_csv_drugs = r"..\DataSources\exp_csv_drugs.csv"
-df_drugs = pd.read_csv(exp_csv_drugs, sep=',')
-sqlDrugBank_Name = SQLScripting(df_drugs,'DrugBank_Nome')
-#sqlDrugBank_Name = SQLScripting(df_drugs,'DrugBank_Nome', [], [], ['drugbank-id'], ['name'], ['Anvisa_Name'], ['nome'])

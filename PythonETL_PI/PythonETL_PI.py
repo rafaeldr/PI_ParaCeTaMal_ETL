@@ -286,15 +286,13 @@ else:
     df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
 
 
-
 # Exporting as SQL Scripts
-
 sqlDrugBank_Name = sql.SQLScripting(df_drugs,'DrugBank_Nome')
 
+#sqlDrugBank_Name = SQLScripting(df_drugs,'DrugBank_Nome')
+print('debug')
+#sqlDrugBank_Name = SQLScripting(df_drugs,'DrugBank_Nome', [], [], ['drugbank-id'], ['name'], ['Anvisa_Name'], ['nome'])
 
 # BigTable Section
-
-
-
 print()
 pass
