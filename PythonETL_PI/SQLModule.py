@@ -1,5 +1,6 @@
 import pandas as pd
 import re
+import os
 
 class SQLScripting:
 
@@ -74,7 +75,7 @@ class SQLScripting:
         values_string = 'VALUES\n'
 
         for row in self.df.itertuples(index=False,name=None):
-            values_string += indent + re.sub(r'nan', 'NULL', str(row))
+            values_string += indent + re.sub(r'inf', '0', str(row))
             values_string += ',\n'
 
         result_string = insert_string + columns_string + values_string[:-2] + ';'
@@ -136,3 +137,19 @@ class SQLScripting:
         self.fk_ext_table = fk_ext_table
         self.fk_ext_column = fk_ext_column
         return
+    
+    def exportSQLScripts(self):
+        
+        dirName = r"..\Scripts"
+        if not os.path.exists(dirName):
+            os.makedirs(dirName)
+
+        baseName = r"..\Scripts\sql"
+
+        fileName = baseName+'_'+self.table_name+'_create.sql'
+        with open(fileName, "w") as text_file:
+            text_file.write(self.createSQL)
+
+        fileName = baseName+'_'+self.table_name+'_insert.sql'
+        with open(fileName, "w") as text_file:
+            text_file.write(self.insertSQL)

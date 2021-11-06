@@ -371,3 +371,15 @@ FodyWeavers.xsd
 /DataSources/exp_csv_interactions.csv
 /DataSources/exp_csv_pAtivosAccented.csv
 /DataSources/exp_csv_DrugBank_Anvisa.csv
+/Scripts/sql_DrugBank_Nome_insert.sql
+/Scripts/sql_DrugBank_Nome_create.sql
+/Scripts/sql_DrugBank_Interacao_insert.sql
+/Scripts/sql_DrugBank_Interacao_create.sql
+/Scripts/sql_DrugBank_Anvisa_insert.sql
+/Scripts/sql_DrugBank_Anvisa_create.sql
+/Scripts/sql_Anvisa_PrincipioAtivo_insert.sql
+/Scripts/sql_Anvisa_PrincipioAtivo_create.sql
+/Scripts/sql_Anvisa_Nome_PrincipioAtivo_insert.sql
+/Scripts/sql_Anvisa_Nome_PrincipioAtivo_create.sql
+/Scripts/sql_Anvisa_Nome_insert.sql
+/Scripts/sql_Anvisa_Nome_create.sql

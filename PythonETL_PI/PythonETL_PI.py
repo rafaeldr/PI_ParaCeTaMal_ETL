@@ -303,11 +303,14 @@ sqlAvisa_NameActPrinciple = sql.SQLScripting(df_Anvisa_Names_Principles, 'Anvisa
 sqlDrugBank_Anvisa = sql.SQLScripting(df_DrugBank_Anvisa, 'DrugBank_Anvisa', ['drugbank-id','id_pAtivo','matchingValue'], [], ['drugbank-id','id_pAtivo'],
                                       ['drugbank-id', 'id_pAtivo'], ['DrugBank_Nome', 'Anvisa_PrincipioAtivo'], ['drugbank-id', 'id_pAtivo'])
 
-#with open("Output.txt", "w") as text_file:
-#    text_file.write("Purchase Amount: %s" % TotalAmount)
+# Exporting Scripts (Scripts Directory)
+sqlDrugBank_Name.exportSQLScripts()
+sqlDrugBank_Interactions.exportSQLScripts()
+sqlAnvisa_Name.exportSQLScripts()
+sqlAnvisa_Principles.exportSQLScripts()
+sqlAvisa_NameActPrinciple.exportSQLScripts()
+sqlDrugBank_Anvisa.exportSQLScripts()
 
 #BigTable Section
-
-print()
 
 pass
