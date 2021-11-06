@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>995598a9-71cc-4594-87bb-51f1bf5fb69f</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>PythonETL_PI.py</StartupFile>
+    <StartupFile>SQLModule.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
