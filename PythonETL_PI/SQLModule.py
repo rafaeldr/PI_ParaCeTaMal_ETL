@@ -151,5 +151,5 @@ class SQLScripting:
             text_file.write(self.createSQL)
 
         fileName = baseName+'_'+self.table_name+'_insert.sql'
-        with open(fileName, "w") as text_file:
+        with open(fileName, "w", encoding='utf8') as text_file:
             text_file.write(self.insertSQL)

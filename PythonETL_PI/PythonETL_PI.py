@@ -286,6 +286,20 @@ else:
     df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
 
 
+# BigTable Section
+df_BigTable = df_drugs.rename(columns={'drugbank-id': 'id_principal', 'name' : 'nome'})
+df_BigTable['tipo_origem'] = [1] * len(df_drugs)
+
+df_aux = df_Anvisa_Names.rename(columns={'id': 'id_principal', 'nomeProduto' : 'nome'})
+df_aux['tipo_origem'] = [2] * len(df_Anvisa_Names)
+df_BigTable = df_BigTable.append(df_aux, ignore_index=True)
+
+df_aux = df_Anvisa_PrinciplesAccented.rename(columns={'id_pAtivo': 'id_principal', 'nome_pAtivo' : 'nome'})
+df_aux = df_aux[['id_principal','nome']]
+df_aux['tipo_origem'] = [3] * len(df_Anvisa_PrinciplesAccented)
+df_BigTable = df_BigTable.append(df_aux, ignore_index=True)
+
+
 # SQL Scripts
 # ['drugbank-id', 'name']
 sqlDrugBank_Name = sql.SQLScripting(df_drugs,'DrugBank_Nome', [], [], ['drugbank-id'])
@@ -302,6 +316,8 @@ sqlAvisa_NameActPrinciple = sql.SQLScripting(df_Anvisa_Names_Principles, 'Anvisa
 # ['drugbank-id', 'name_drugbank', 'id_pAtivo', 'name_anvisa','matchingValue']
 sqlDrugBank_Anvisa = sql.SQLScripting(df_DrugBank_Anvisa, 'DrugBank_Anvisa', ['drugbank-id','id_pAtivo','matchingValue'], [], ['drugbank-id','id_pAtivo'],
                                       ['drugbank-id', 'id_pAtivo'], ['DrugBank_Nome', 'Anvisa_PrincipioAtivo'], ['drugbank-id', 'id_pAtivo'])
+# ['id_principal', 'nome', 'tipo_origem']
+sqlBigTable = sql.SQLScripting(df_BigTable, 'BigTable_Nomes', [], [], [])
 
 # Exporting Scripts (Scripts Directory)
 sqlDrugBank_Name.exportSQLScripts()
@@ -310,7 +326,6 @@ sqlAnvisa_Name.exportSQLScripts()
 sqlAnvisa_Principles.exportSQLScripts()
 sqlAvisa_NameActPrinciple.exportSQLScripts()
 sqlDrugBank_Anvisa.exportSQLScripts()
+sqlBigTable.exportSQLScripts()
 
-#BigTable Section
-
-pass
+print('ETL Successfully Executed')
