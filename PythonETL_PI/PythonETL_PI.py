@@ -9,7 +9,7 @@ import SQLModule as sql
 
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
-callTermMatching = True # Keep false unless required (implies in high computation time)
+callTermMatching = False # Keep false unless required (implies in high computation time)
 prodEnvironment = False # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
@@ -286,13 +286,28 @@ else:
     df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
 
 
-# Exporting as SQL Scripts
-sqlDrugBank_Name = sql.SQLScripting(df_drugs,'DrugBank_Nome')
+# SQL Scripts
+# ['drugbank-id', 'name']
+sqlDrugBank_Name = sql.SQLScripting(df_drugs,'DrugBank_Nome', [], [], ['drugbank-id'])
+# ['drugbank-id1', 'drugbank-id2']
+sqlDrugBank_Interactions = sql.SQLScripting(df_interactions, 'DrugBank_Interacao', [], [], ['drugbank-id1','drugbank-id2'], 
+                                            ['drugbank-id1','drugbank-id2'], ['DrugBank_Nome','DrugBank_Nome'], ['drugbank-id','drugbank-id']) # FK | Referenced Tables & Columns
+# ['nomeProduto', 'id']
+sqlAnvisa_Name = sql.SQLScripting(df_Anvisa_Names, 'Anvisa_Nome', ['id','nomeProduto'], [], ['id'])
+# ['nome_pAtivo', 'id_pAtivo', 'translated_pAtivo']
+sqlAnvisa_Principles = sql.SQLScripting(df_Anvisa_PrinciplesAccented, 'Anvisa_PrincipioAtivo', ['id_pAtivo', 'nome_pAtivo', 'translated_pAtivo'], [], ['id_pAtivo'],)
+# ['idProduto', 'idPrincipio']
+sqlAvisa_NameActPrinciple = sql.SQLScripting(df_Anvisa_Names_Principles, 'Anvisa_Nome_PrincipioAtivo', [], [], ['idProduto', 'idPrincipio'],
+                                             ['idProduto', 'idPrincipio'], ['Anvisa_Nome', 'Anvisa_PrincipioAtivo'], ['id', 'id_pAtivo'])
+# ['drugbank-id', 'name_drugbank', 'id_pAtivo', 'name_anvisa','matchingValue']
+sqlDrugBank_Anvisa = sql.SQLScripting(df_DrugBank_Anvisa, 'DrugBank_Anvisa', ['drugbank-id','id_pAtivo','matchingValue'], [], ['drugbank-id','id_pAtivo'],
+                                      ['drugbank-id', 'id_pAtivo'], ['DrugBank_Nome', 'Anvisa_PrincipioAtivo'], ['drugbank-id', 'id_pAtivo'])
 
-#sqlDrugBank_Name = SQLScripting(df_drugs,'DrugBank_Nome')
-print('debug')
-#sqlDrugBank_Name = SQLScripting(df_drugs,'DrugBank_Nome', [], [], ['drugbank-id'], ['name'], ['Anvisa_Name'], ['nome'])
+#with open("Output.txt", "w") as text_file:
+#    text_file.write("Purchase Amount: %s" % TotalAmount)
 
-# BigTable Section
+#BigTable Section
+
 print()
+
 pass
