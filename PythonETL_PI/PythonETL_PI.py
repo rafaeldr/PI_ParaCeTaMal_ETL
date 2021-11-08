@@ -343,10 +343,12 @@ df_BigTable = df_BigTable.append(df_aux, ignore_index=True)
 
 # SQL Scripts
 # ['drugbank-id', 'name']
-sqlDrugBank_Name = sql.SQLScripting(df_drugs,'DrugBank_Nome', [], [], ['drugbank-id'])
+df_drugs.rename(columns={'drugbank-id': 'drugbank_id'}, inplace = True)
+sqlDrugBank_Name = sql.SQLScripting(df_drugs,'DrugBank_Nome', [], [], ['drugbank_id'])
 # ['drugbank-id1', 'drugbank-id2']
-sqlDrugBank_Interactions = sql.SQLScripting(df_interactions, 'DrugBank_Interacao', [], [], ['drugbank-id1','drugbank-id2'], 
-                                            ['drugbank-id1','drugbank-id2'], ['DrugBank_Nome','DrugBank_Nome'], ['drugbank-id','drugbank-id']) # FK | Referenced Tables & Columns
+df_interactions.rename(columns={'drugbank-id1': 'drugbank_id1', 'drugbank-id2': 'drugbank_id2'}, inplace = True)
+sqlDrugBank_Interactions = sql.SQLScripting(df_interactions, 'DrugBank_Interacao', [], [], ['drugbank_id1','drugbank_id2'], 
+                                            ['drugbank_id1','drugbank_id2'], ['DrugBank_Nome','DrugBank_Nome'], ['drugbank_id','drugbank_id']) # FK | Referenced Tables & Columns
 # ['nomeProduto', 'id']
 sqlAnvisa_Name = sql.SQLScripting(df_Anvisa_Names, 'Anvisa_Nome', ['id','nomeProduto'], [], ['id'])
 # ['nome_pAtivo', 'id_pAtivo', 'translated_pAtivo']
@@ -355,8 +357,9 @@ sqlAnvisa_Principles = sql.SQLScripting(df_Anvisa_PrinciplesAccented, 'Anvisa_Pr
 sqlAvisa_NameActPrinciple = sql.SQLScripting(df_Anvisa_Names_Principles, 'Anvisa_Nome_PrincipioAtivo', [], [], ['idProduto', 'idPrincipio'],
                                              ['idProduto', 'idPrincipio'], ['Anvisa_Nome', 'Anvisa_PrincipioAtivo'], ['id', 'id_pAtivo'])
 # ['drugbank-id', 'name_drugbank', 'id_pAtivo', 'name_anvisa','matchingValue']
-sqlDrugBank_Anvisa = sql.SQLScripting(df_DrugBank_Anvisa, 'DrugBank_Anvisa', ['drugbank-id','id_pAtivo','matchingValue'], [], ['drugbank-id','id_pAtivo'],
-                                      ['drugbank-id', 'id_pAtivo'], ['DrugBank_Nome', 'Anvisa_PrincipioAtivo'], ['drugbank-id', 'id_pAtivo'])
+df_DrugBank_Anvisa.rename(columns={'drugbank-id': 'drugbank_id'}, inplace = True)
+sqlDrugBank_Anvisa = sql.SQLScripting(df_DrugBank_Anvisa, 'DrugBank_Anvisa', ['drugbank_id','id_pAtivo','matchingValue'], [], ['drugbank_id','id_pAtivo'],
+                                      ['drugbank_id', 'id_pAtivo'], ['DrugBank_Nome', 'Anvisa_PrincipioAtivo'], ['drugbank_id', 'id_pAtivo'])
 # ['id_principal', 'nome', 'tipo_origem']
 sqlBigTable = sql.SQLScripting(df_BigTable, 'BigTable_Nomes', [], [], [])
 
