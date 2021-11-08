@@ -10,7 +10,7 @@ import SQLModule as sql
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
 callTermMatching = False # Keep false unless required (implies in high computation time)
-prodEnvironment = False # False for "development/test"; true for "production" execution
+prodEnvironment = True # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
 TranslationModule.silent = silent
@@ -84,6 +84,47 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
 if not silent: print('DrugBank - Interactions - Removing Reversed Duplicates') 
 data = {tuple(sorted(item)) for item in data}
 df_interactions = pd.DataFrame(data, columns=['drugbank-id1','drugbank-id2'])
+
+# Test Constraint id1 < id2 always
+if sum(df_interactions['drugbank-id1']<df_interactions['drugbank-id2']) != len(df_interactions):
+    print("Unexpected error: DrugBank interactions should respect 'id1 < id2'.")
+    exit(1)
+
+# Check Referential Integrity
+diff_set = set(set(df_interactions['drugbank-id1']).union(df_interactions['drugbank-id2'])).difference(df_drugs['drugbank-id'])
+if len(diff_set) > 0:
+    if not silent: print('Warning: Found '+str(len(diff_set))+' DrugBank ids that do not respect referential integrity.')
+    if not silent: print('         These are '+str(diff_set)[1:-1]+'.')
+    if not silent: print('         Trying to force the inclusion of these ids!')
+    if not silent: print('         An extra computing power that could be avoided.')
+    
+    # Force Adjustments
+    found = len(diff_set)
+    counter = 0
+    for drugOrigin in drugbank_dict['drugbank']['drug']:
+        if drugOrigin['drug-interactions']!=None:
+            if drugOrigin['drug-interactions']['drug-interaction'] == collections.OrderedDict: # only 1 registry
+                drugDestiny_id = str(drugOrigin['drug-interactions']['drug-interaction']['drugbank-id'])
+                drugDestiny_id = int(drugDestiny_id[2:])
+                if drugDestiny_id in diff_set:
+                    drugDestiny_name = str(drugOrigin['drug-interactions']['drug-interaction']['name'])
+                    df_drugs = df_drugs.append({'drugbank-id': drugDestiny_id, 'name': drugDestiny_name.strip().upper()}, ignore_index=True)
+                    diff_set.remove(drugDestiny_id)
+                    counter += 1
+            elif type(drugOrigin['drug-interactions']['drug-interaction']) == list:
+                for drugDestiny in drugOrigin['drug-interactions']['drug-interaction']:
+                    drugDestiny_id = str(drugDestiny['drugbank-id'])
+                    drugDestiny_id = int(drugDestiny_id[2:])
+                    if drugDestiny_id in diff_set:
+                        drugDestiny_name = str(drugDestiny['name'])
+                        df_drugs = df_drugs.append({'drugbank-id': drugDestiny_id, 'name': drugDestiny_name.strip().upper()}, ignore_index=True)
+                        diff_set.remove(drugDestiny_id)
+                        counter += 1
+    
+    if counter<found or len(diff_set)>0:
+        print("Unexpected error: Some ids referenced by interactions don't exist as DrugBank drug names.")
+        exit(1)
+
 
 # Exporting
 if not silent: print('DrugBank - Exporting CSVs') 
