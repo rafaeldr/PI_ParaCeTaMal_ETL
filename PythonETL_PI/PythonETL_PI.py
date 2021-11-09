@@ -247,12 +247,14 @@ change_list = [3739, 2974, 1331, 1843, 1299, 571, 3872, 1180, 2610, 3404,
 
 # Adjust relationship
 for item in reversed(list_Names_Principles):
-    if item[1] in change_list:
+    if item[1] in change_list:  #[0] 'idProduto' [1] 'idPrincipio'
         item_temp = list(item)
         item_temp[1] = change_dict[item_temp[1]]
         item_temp = tuple(item_temp)
         list_Names_Principles.remove(item)
-        list_Names_Principles.append(item_temp)
+        # Needs to check if the "new relation" doesn't already exist (with the other id)
+        if item_temp not in list_Names_Principles:
+            list_Names_Principles.append(item_temp)
 
 # Remove principle
 for item in change_list:
