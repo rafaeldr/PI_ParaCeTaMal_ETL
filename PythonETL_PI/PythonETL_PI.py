@@ -246,7 +246,7 @@ change_list = [3739, 2974, 1331, 1843, 1299, 571, 3872, 1180, 2610, 3404,
                2040, 418, 3687, 2046, 2350]
 
 # Adjust relationship
-for item in list_Names_Principles:
+for item in reversed(list_Names_Principles):
     if item[1] in change_list:
         item_temp = list(item)
         item_temp[1] = change_dict[item_temp[1]]
@@ -274,7 +274,7 @@ for item in delete_list:
     del dictPrinciplesAccented[key_value] 
 
 # Remove relationship
-for item in list_Names_Principles:
+for item in reversed(list_Names_Principles):
     if item[1] in delete_list:
         list_Names_Principles.remove(item)
 
@@ -291,17 +291,14 @@ df_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['
 if len(df_Anvisa_PrinciplesAccented) != len(df_Anvisa_Principles):
     print('Unexpected error: Data Frames for Active Principles (Accented and Clean) do not match in size.')
     exit(1)
-
-
-
-# ['idProduto', 'idPrincipio']
-df_Anvisa_Names_Principles
-#diff_set = set(set(df_interactions['drugbank-id1']).union(df_interactions['drugbank-id2'])).difference(df_drugs['drugbank-id'])
 # Loose Act. Principle ids?
-set(df_Anvisa_Names_Principles['idPrincipio']).difference(df_Anvisa_Principles['id_pAtivo']) # 1180
-
+if set(df_Anvisa_Names_Principles['idPrincipio']).difference(df_Anvisa_Principles['id_pAtivo']) > 0:
+    print('Unexpected error: ANVISA Data Frame for Names <-> Active Principles contains wrong Active Principles ids.')
+    exit(1)
 # Loose Anvisa Product Name ids?
-set(df_Anvisa_Names_Principles['idProduto']).difference(df_Anvisa_Names['id'])  # Total: 236!!  (Sample: 122; 8327)
+if set(df_Anvisa_Names_Principles['idProduto']).difference(df_Anvisa_Names['id']) > 0:
+    print('Unexpected error: ANVISA Data Frame for Names <-> Active Principles contains wrong Product ids.')
+    exit(1)
 
 
 # Translation Section Call (Run Once) - "Limited Resource" [Google Translator API]
