@@ -225,7 +225,7 @@ for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size cha
 
 # Manual Cleanup Section (after visual inspection)
 
-if not silent: print('ANVISA - Executing Manual Cleanup Procedures') 
+if not silent: print('ANVISA - Executing Cleanup Procedures') 
 # 1. Renaming
 dictPrinciples['HIDROBROMETO DE CITALOPRAM'] = dictPrinciples.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
 dictPrinciplesAccented['HIDROBROMETO DE CITALOPRAM'] = dictPrinciplesAccented.pop('HIDROBROMETO DE CITALOPRAM (PORT. 344/98 LISTA C 1)')
@@ -337,11 +337,12 @@ if callTermMatching:
     df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
     df_DrugBank_Anvisa.to_csv(exp_csv_DrugBank_Anvisa, index = False)
 else:
-    if not silent: print('ANVISA - Loading Preprocessed Term Matching') 
+    if not silent: print('DrugBank + ANVISA - Loading Preprocessed Term Matching') 
     df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
 
 
 # BigTable Section
+if not silent: print('Populating BigTable Data Structure')
 df_BigTable = df_drugs.rename(columns={'drugbank-id': 'id_principal', 'name' : 'nome'})
 df_BigTable['tipo_origem'] = [1] * len(df_drugs)
 
@@ -357,6 +358,7 @@ df_BigTable = df_BigTable.append(df_aux, ignore_index=True)
 
 # SQL Scripts
 # ['drugbank-id', 'name']
+if not silent: print('SQL Scripts - Creating CREATE and INSERT scripts for database tables')
 df_drugs.rename(columns={'drugbank-id': 'drugbank_id'}, inplace = True)
 sqlDrugBank_Name = sql.SQLScripting(df_drugs,'DrugBank_Nome', [], [], ['drugbank_id'])
 # ['drugbank-id1', 'drugbank-id2']
@@ -378,6 +380,7 @@ sqlDrugBank_Anvisa = sql.SQLScripting(df_DrugBank_Anvisa, 'DrugBank_Anvisa', ['d
 sqlBigTable = sql.SQLScripting(df_BigTable, 'BigTable_Nomes', [], [], [])
 
 # Exporting Scripts (Scripts Directory)
+if not silent: print('SQL Scripts - Exporting script files')
 sqlDrugBank_Name.exportSQLScripts()
 sqlDrugBank_Interactions.exportSQLScripts()
 sqlAnvisa_Name.exportSQLScripts()
