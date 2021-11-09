@@ -10,7 +10,7 @@ import SQLModule as sql
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
 callTermMatching = False # Keep false unless required (implies in high computation time)
-prodEnvironment = True # False for "development/test"; true for "production" execution
+prodEnvironment = False # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
 TranslationModule.silent = silent
@@ -206,7 +206,7 @@ for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size cha
             key_value = list(dictNamesAccented.keys())[list(dictNamesAccented.values()).index(idx_number)] # Required since key_value can have different accentuation
             del dictNamesAccented[key_value] # Step 2: Remove from dictNamesAccented
 
-            for item in list_Names_Principles:
+            for item in reversed(list_Names_Principles):
                 if item[0] == idx_number:
                     list_Names_Principles.remove(item)
     # Case B : Product Name = 2-More Active Principles
@@ -216,12 +216,12 @@ for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size cha
         key_value = list(dictNamesAccented.keys())[list(dictNamesAccented.values()).index(idx_number)] 
         del dictNamesAccented[key_value] 
 
-        for item in list_Names_Principles:
+        for item in reversed(list_Names_Principles):
             if item[0] == idx_number:       # Remember: Can be already removed during Case A?
                 list_Names_Principles.remove(item)
     else:
         list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))  # No match (but multiple names)
-if not silent: print()
+
 
 # Manual Cleanup Section (after visual inspection)
 
@@ -278,7 +278,6 @@ for item in list_Names_Principles:
     if item[1] in delete_list:
         list_Names_Principles.remove(item)
 
-
 # Prepare DataFrames
 if not silent: print('ANVISA - Creating DataFrames') 
 df_Anvisa_PrinciplesAccented = pd.DataFrame(dictPrinciplesAccented.items(), columns=['nome_pAtivo','id_pAtivo'])
@@ -286,6 +285,24 @@ df_Anvisa_Principles = pd.DataFrame(dictPrinciples.items(), columns=['nome_pAtiv
 df_Anvisa_Names = pd.DataFrame(dictNames.items(), columns=['nomeProduto','id'])
 df_Anvisa_Names_Principles = pd.DataFrame(list_Names_Principles, columns=['idProduto','idPrincipio'])
 df_Equal_Names_Principles = pd.DataFrame(list_Equal_Names_Principles, columns=['idProduto','nomeProduto'])
+
+
+# Check Referential Integrity
+if len(df_Anvisa_PrinciplesAccented) != len(df_Anvisa_Principles):
+    print('Unexpected error: Data Frames for Active Principles (Accented and Clean) do not match in size.')
+    exit(1)
+
+
+
+# ['idProduto', 'idPrincipio']
+df_Anvisa_Names_Principles
+#diff_set = set(set(df_interactions['drugbank-id1']).union(df_interactions['drugbank-id2'])).difference(df_drugs['drugbank-id'])
+# Loose Act. Principle ids?
+set(df_Anvisa_Names_Principles['idPrincipio']).difference(df_Anvisa_Principles['id_pAtivo']) # 1180
+
+# Loose Anvisa Product Name ids?
+set(df_Anvisa_Names_Principles['idProduto']).difference(df_Anvisa_Names['id'])  # Total: 236!!  (Sample: 122; 8327)
+
 
 # Translation Section Call (Run Once) - "Limited Resource" [Google Translator API]
 if callTranslator:
