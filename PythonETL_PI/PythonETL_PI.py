@@ -9,7 +9,7 @@ import SQLModule as sql
 
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
-callTermMatching = False # Keep false unless required (implies in high computation time)
+callTermMatching = True # Keep false unless required (implies in high computation time)
 prodEnvironment = True # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
@@ -221,7 +221,7 @@ for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size cha
                 list_Names_Principles.remove(item)
     else:
         list_Equal_Names_Principles.append((int(dictNames[nameStr]), nameStr))  # No match (but multiple names)
-
+if not silent: print()
 
 # Manual Cleanup Section (after visual inspection)
 
@@ -314,10 +314,16 @@ else:
     if not silent: print('ANVISA - Loading Translations') 
     df_PrinciplesTraducoes = pd.read_csv(exp_csv_pAtivos_Traducoes, sep=',')
 
+
+# Adjust Translations for Upper Case
+# For some strange (and external) reason, google translator send some terms with mixed case
+df_PrinciplesTraducoes['0'] = df_PrinciplesTraducoes['0'].str.upper()
+
 # Test
 if len(df_Anvisa_PrinciplesAccented) != len(df_PrinciplesTraducoes):
     print("Unexpected error: Dataframes doesn't match in length! Translations failed or data changed shape since last batch translation.")
     exit(1)
+
 
 # Adjust DataFrames
 df_Anvisa_PrinciplesAccented['translated_pAtivo'] = df_PrinciplesTraducoes
@@ -333,10 +339,24 @@ df_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8
 
 # endregion
 
+
+# Validation: Unicity of Names 
+# (does not guarantee demantic unicity)
+if len(df_drugs['name']) != len(set(df_drugs['name'])):
+    print("Unexpected error: DrugBank Names are not unique!")
+    exit(1)
+#if len(df_Anvisa_PrinciplesAccented['translated_pAtivo']) != len(set(df_Anvisa_PrinciplesAccented['translated_pAtivo'])):
+#    print("Unexpected error: Anvisa Active Principle Names are not unique.")
+#    exit(1) # IT FAILS
+# -> Slightly different terms in portuguese generate the same (and correct) terminology in english
+# --> This will be considered in Pass 1 for term matching
+
+
 # Nomenclature Pair Matching Module Call
 if callTermMatching:
     if not silent: print('DrugBank + ANVISA - Calling Term Matching Module')
-    df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
+    #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
+    df_DrugBank_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_drugs['name'], df_drugs['drugbank-id'])
     df_DrugBank_Anvisa.to_csv(exp_csv_DrugBank_Anvisa, index = False)
 else:
     if not silent: print('DrugBank + ANVISA - Loading Preprocessed Term Matching') 
