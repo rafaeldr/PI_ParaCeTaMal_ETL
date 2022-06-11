@@ -386,3 +386,4 @@ FodyWeavers.xsd
 /Scripts/sql_Anvisa_Nome_create.sql
 /Scripts/sql_BigTable_Nomes_insert.sql
 /Scripts/sql_BigTable_Nomes_create.sql
+/DataSources/drug
