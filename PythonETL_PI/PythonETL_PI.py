@@ -9,8 +9,8 @@ import SQLModule as sql
 
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
-callTermMatching = True # Keep false unless required (implies in high computation time)
-prodEnvironment = True # False for "development/test"; true for "production" execution
+callTermMatching = False # Keep false unless required (implies in high computation time)
+prodEnvironment = False # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
 TranslationModule.silent = silent

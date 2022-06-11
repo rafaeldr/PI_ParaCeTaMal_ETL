@@ -1,11 +1,7 @@
 import pandas as pd
-import numpy as np
-import collections
-
-import six
 from google.cloud import translate_v2 as translate
-
 import os
+
 parentDir = os.path.abspath(os.path.join(os.getcwd(), os.pardir))
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(parentDir, r"Environment\translator-project.json")
 
@@ -26,4 +22,3 @@ def BatchTranslate(data : pd.Series) -> pd.Series:
 	s_Translated = pd.Series(s_Translated)
 
 	return s_Translated
-

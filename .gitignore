@@ -365,6 +365,7 @@ FodyWeavers.xsd
 /DataSources/exp_csv_drugs.csv
 /DataSources/exp_csv_pAtivos.csv
 /Environment/translator-project.json
+/Environment/translator-project.json[encrypted].7z
 /DataSources/exp_csv_Analysis_Nomes_pAtivos.csv
 /DataSources/exp_csv_Nomes.csv
 /DataSources/exp_csv_Nomes_pAtivos.csv
@@ -385,5 +386,3 @@ FodyWeavers.xsd
 /Scripts/sql_Anvisa_Nome_create.sql
 /Scripts/sql_BigTable_Nomes_insert.sql
 /Scripts/sql_BigTable_Nomes_create.sql
-/Environment/translator-project.json[encrypted].7z
-/Environment/translator-project.json[encrypted].7z
