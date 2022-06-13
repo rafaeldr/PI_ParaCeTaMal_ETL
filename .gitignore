@@ -387,3 +387,4 @@ FodyWeavers.xsd
 /Scripts/sql_BigTable_Nomes_insert.sql
 /Scripts/sql_BigTable_Nomes_create.sql
 /DataSources/drug
+/Exported

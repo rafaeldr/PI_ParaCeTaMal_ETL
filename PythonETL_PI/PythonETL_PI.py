@@ -6,10 +6,12 @@ import unidecode
 import TranslationModule
 import TermMatchingModule
 import SQLModule as sql
+import KEGGDrugModule
 
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
-callTermMatching = False # Keep false unless required (implies in high computation time)
+callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
+callTermMatchingKEGGDrug = True # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
 prodEnvironment = False # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
@@ -21,16 +23,22 @@ if prodEnvironment:
     drugbank_file = r"..\DataSources\full database.xml"    # Full DrugBank - Takes ~6 min to parse
 else:
     drugbank_file = r"..\DataSources\drugbank_sample6.xml"  # Sample DrugBank with only 6 drugs
+KEGGDrugModule.file = r"..\DataSources\drug"
 # Export
-exp_csv_drugs = r"..\DataSources\exp_csv_drugs.csv"
-exp_csv_interactions = r"..\DataSources\exp_csv_interactions.csv"
-exp_csv_pAtivos = r"..\DataSources\exp_csv_pAtivos.csv"
-exp_csv_pAtivosAccented = r"..\DataSources\exp_csv_pAtivosAccented.csv"
-exp_csv_Nomes = r"..\DataSources\exp_csv_Nomes.csv"
-exp_csv_Nomes_pAtivos = r"..\DataSources\exp_csv_Nomes_pAtivos.csv"
-exp_csv_pAtivos_Traducoes = r"..\DataSources\exp_csv_pAtivos_Traducoes.csv"
-exp_csv_Analysis_Nomes_pAtivos = r"..\DataSources\exp_csv_Analysis_Nomes_pAtivos.csv" # Used for analysis
-exp_csv_DrugBank_Anvisa = r"..\DataSources\exp_csv_DrugBank_Anvisa.csv"
+exp_csv_drugs = r"..\Exported\exp_csv_drugs.csv"
+exp_csv_interactions = r"..\Exported\exp_csv_interactions.csv"
+exp_csv_pAtivos = r"..\Exported\exp_csv_pAtivos.csv"
+exp_csv_pAtivosAccented = r"..\Exported\exp_csv_pAtivosAccented.csv"
+exp_csv_Nomes = r"..\Exported\exp_csv_Nomes.csv"
+exp_csv_Nomes_pAtivos = r"..\Exported\exp_csv_Nomes_pAtivos.csv"
+exp_csv_pAtivos_Traducoes = r"..\Exported\exp_csv_pAtivos_Traducoes.csv"
+exp_csv_Analysis_Nomes_pAtivos = r"..\Exported\exp_csv_Analysis_Nomes_pAtivos.csv"
+exp_csv_DrugBank_Anvisa = r"..\Exported\exp_csv_DrugBank_Anvisa.csv" # REQUIRED When callTermMatchingDrugBank is False
+exp_csv_KEGG_Drugs = r"..\Exported\exp_csv_KEGG_Drugs.csv"
+exp_csv_KEGG_DrugsSynonyms = r"..\Exported\exp_csv_KEGG_DrugsSynonyms.csv"
+exp_csv_KEGG_Interaction = r"..\Exported\exp_csv_KEGG_Interaction.csv"
+exp_csv_KEGGDrug_Anvisa = r"..\Exported\exp_csv_KEGGDrug_Anvisa.csv" # REQUIRED When callTermMatchingKEGGDrug is False
+
 
 # Importing Data Sources (AS-IS) - ANVISA
 if not silent: print('Importing Data Sources (AS-IS) - ANVISA')
@@ -339,9 +347,19 @@ df_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8
 
 # endregion
 
+# region ANVISA
+
+# Importing KEGG Drug
+df_KEGG_drugs, df_KEGG_drugsSynonyms, df_KEGG_interaction = KEGGDrugModule.importKEGGDrug()
+df_KEGG_drugs.to_csv(exp_csv_KEGG_Drugs, encoding="utf-8", index = False)
+df_KEGG_drugsSynonyms.to_csv(exp_csv_KEGG_DrugsSynonyms, encoding="utf-8", index = False)
+df_KEGG_interaction.to_csv(exp_csv_KEGG_Interaction, encoding="utf-8", index = False)
+
+# endregion
+
 
 # Validation: Unicity of Names 
-# (does not guarantee demantic unicity)
+# (does not guarantee semantic unicity)
 if len(df_drugs['name']) != len(set(df_drugs['name'])):
     print("Unexpected error: DrugBank Names are not unique!")
     exit(1)
@@ -353,7 +371,7 @@ if len(df_drugs['name']) != len(set(df_drugs['name'])):
 
 
 # Nomenclature Pair Matching Module Call
-if callTermMatching:
+if callTermMatchingDrugBank:
     if not silent: print('DrugBank + ANVISA - Calling Term Matching Module')
     #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
     df_DrugBank_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_drugs['name'], df_drugs['drugbank-id'])
@@ -361,6 +379,17 @@ if callTermMatching:
 else:
     if not silent: print('DrugBank + ANVISA - Loading Preprocessed Term Matching') 
     df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
+
+
+# Nomenclature Pair Matching Module Call
+if callTermcallTermMatchingKEGGDrug:
+    if not silent: print('KEGG Drug + ANVISA - Calling Term Matching Module')
+    #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
+    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'])
+    df_KEGGDrug_Anvisa.to_csv(exp_csv_KEGGDrug_Anvisa, index = False)
+else:
+    if not silent: print('KEGG Drug + ANVISA - Loading Preprocessed Term Matching') 
+    df_KEGGDrug_Anvisa = pd.read_csv(exp_csv_KEGGDrug_Anvisa, sep=',')
 
 
 # BigTable Section
@@ -401,6 +430,22 @@ sqlDrugBank_Anvisa = sql.SQLScripting(df_DrugBank_Anvisa, 'DrugBank_Anvisa', ['d
 # ['id_principal', 'nome', 'tipo_origem']
 sqlBigTable = sql.SQLScripting(df_BigTable, 'BigTable_Nomes', [], [], [])
 
+
+# KEGG Drug Specific SQL Scripts
+# ['keggdrug-id', 'name']
+if not silent: print('SQL Scripts - Creating CREATE and INSERT scripts for KEGG Drug database tables')
+df_KEGG_drugs.rename(columns={'keggdrug-id': 'keggdrug_id'}, inplace = True)
+sqlKEGGDrug_Name = sql.SQLScripting(df_KEGG_drugs,'KEGGDrug_Nome', [], [], ['keggdrug_id'])
+# ['keggdrug-id1', 'keggdrug-id2']
+df_KEGG_interaction .rename(columns={'keggdrug-id1': 'keggdrug_id1', 'keggdrug-id2': 'keggdrug_id2'}, inplace = True)
+sqlKEGGDrug_Interactions = sql.SQLScripting(df_KEGG_interaction, 'KEGGDrug_Interacao', [], [], ['keggdrug_id1','keggdrug_id2'], 
+                                            ['keggdrug_id1','keggdrug_id2'], ['KEGGDrug_Nome','KEGGDrug_Nome'], ['keggdrug_id','keggdrug_id']) # FK | Referenced Tables & Columns
+# ['keggdrug-id', 'id_pAtivo', 'matchingValue']
+df_KEGGDrug_Anvisa.rename(columns={'keggdrug-id': 'keggdrug_id'}, inplace = True)
+sqlKEGGDrug_Anvisa = sql.SQLScripting(df_KEGGDrug_Anvisa, 'KEGGDrug_Anvisa', ['keggdrug_id','id_pAtivo','matchingValue'], [], ['keggdrug_id','id_pAtivo'],
+                                      ['keggdrug_id', 'id_pAtivo'], ['KEGGDrug_Nome', 'Anvisa_PrincipioAtivo'], ['keggdrug_id', 'id_pAtivo'])
+
+
 # Exporting Scripts (Scripts Directory)
 if not silent: print('SQL Scripts - Exporting script files')
 sqlDrugBank_Name.exportSQLScripts()
@@ -410,5 +455,9 @@ sqlAnvisa_Principles.exportSQLScripts()
 sqlAvisa_NameActPrinciple.exportSQLScripts()
 sqlDrugBank_Anvisa.exportSQLScripts()
 sqlBigTable.exportSQLScripts()
+# KEGG
+sqlKEGGDrug_Name.exportSQLScripts()
+sqlKEGGDrug_Interactions.exportSQLScripts()
+sqlKEGGDrug_Anvisa.exportSQLScripts()
 
-print('ETL Successfully Executed')
+print('ETL Successfully Executed!')
