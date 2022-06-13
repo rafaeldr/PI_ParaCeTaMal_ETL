@@ -56,9 +56,9 @@ with open(file) as f:
 			drugs.append({'keggdrug-id':drugID,
 					     'name':drugName
 						})
-		elif tokens[0] == 'NAME' or lastCommand == 'NAME':
-			drugName = tokens[1].upper()
-			naming_candidates = tokens[2:] # Discard the trivial single name already included
+		elif lastCommand == 'NAME':	# Only Synonyms
+			drugName = tokens[0].upper()
+			naming_candidates = tokens[1:] # Discard the trivial single name already included
 			for candidate in naming_candidates:
 				if candidate[0] == '(' or candidate[0] == ';': # Discard codes or other non-name stuff
 					break
@@ -104,6 +104,9 @@ df_drugsSynonyms = pd.DataFrame(drugsSynonyms)
 df_metabolic = pd.DataFrame(drugMetabolicInteraction)
 df_metabolic = df_metabolic.drop_duplicates()
 
+# Drugs Names Synonyms (Concat)
+df_drugsSynonyms = pd.concat([df_drugs, df_drugsSynonyms], ignore_index=True)
+df_drugsSynonyms = df_drugsSynonyms.drop_duplicates()
 
 # Cross Checking Drugs for Interaction 
 if not silent: print('Cross Checking Drugs for Interaction')
@@ -127,9 +130,6 @@ for i in range(len(drugsSeries)):
 
 		if len(set_intersec)>0:
 			# Observe that j>i always
-			#drugDrugInteraction.append({'keggdrug-id1':drugsSeries[i],
-			# 'keggdrug-id2':drugsSeries[j]
-			#})
 			drugDrugInteraction.append([int(drugsSeries[i]),
 			 int(drugsSeries[j])
 			 ])
