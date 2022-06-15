@@ -7,7 +7,7 @@ from typing import List
 silent = False
 threshold = 0
 
-def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Series, data2_Ids : pd.Series) -> pd.DataFrame:
+def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Series, data2_Ids : pd.Series, mode) -> pd.DataFrame:
 	
 	# Conceptually: Cross Matrix
 	# Implications -> NOT Symmetric
@@ -104,7 +104,10 @@ def match(data1_Names : pd.Series, data1_Ids : pd.Series, data2_Names : pd.Serie
 		
 	if not silent: print()	
 
-	df_return = pd.DataFrame(returnDataFrame, columns=['id_pAtivo','name_anvisa','drugbank-id','name_drugbank','matchingValue'])
+	if mode=='drugbank':
+		df_return = pd.DataFrame(returnDataFrame, columns=['id_pAtivo','name_anvisa','drugbank-id','name_drugbank','matchingValue'])
+	elif mode=='keggdrug':
+		df_return = pd.DataFrame(returnDataFrame, columns=['id_pAtivo','name_anvisa','keggdrug-id','keggdrug_nome','matchingValue'])
 
 	return df_return
 

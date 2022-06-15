@@ -11,7 +11,7 @@ import KEGGDrugModule
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
 callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
-callTermMatchingKEGGDrug = True # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
+callTermMatchingKEGGDrug = False # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
 prodEnvironment = False # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
@@ -202,7 +202,7 @@ if not silent: print()
 # Search for Products With Exact Same Name of Action Principles (Analysis Task)
 list_Equal_Names_Principles = list()
 for i in reversed(range(len(list(dictNames.keys())))): # Reversed cause size changes over iterations
-    if not silent: print('ANVISA - Analyzing Names and Active Principles: (reversed) '+str(i+1)+' of '+str(len(list(dictNames.keys())))+'\r', end="")
+    if not silent: print('ANVISA - Analyzing Names and Active Principles: (reversed) '+str(i+1)+' of '+str(len(list(dictNames.keys())))+'     \r', end="")
     nameStr = list(dictNames.keys())[i]
     nameStrList = list(map(str.upper,list(map(str.strip, nameStr.split('+')))))
     if len(nameStrList) == 1:
@@ -370,22 +370,22 @@ if len(df_drugs['name']) != len(set(df_drugs['name'])):
 # --> This will be considered in Pass 1 for term matching
 
 
-# Nomenclature Pair Matching Module Call
+# Nomenclature Pair Matching Module Call - DrugBank
 if callTermMatchingDrugBank:
     if not silent: print('DrugBank + ANVISA - Calling Term Matching Module')
     #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
-    df_DrugBank_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_drugs['name'], df_drugs['drugbank-id'])
+    df_DrugBank_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_drugs['name'], df_drugs['drugbank-id'], 'drugbank')
     df_DrugBank_Anvisa.to_csv(exp_csv_DrugBank_Anvisa, index = False)
 else:
     if not silent: print('DrugBank + ANVISA - Loading Preprocessed Term Matching') 
     df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
 
 
-# Nomenclature Pair Matching Module Call
-if callTermcallTermMatchingKEGGDrug:
+# Nomenclature Pair Matching Module Call - KEGGDrug
+if callTermMatchingKEGGDrug:
     if not silent: print('KEGG Drug + ANVISA - Calling Term Matching Module')
     #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
-    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'])
+    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'], 'keggdrug')
     df_KEGGDrug_Anvisa.to_csv(exp_csv_KEGGDrug_Anvisa, index = False)
 else:
     if not silent: print('KEGG Drug + ANVISA - Loading Preprocessed Term Matching') 
