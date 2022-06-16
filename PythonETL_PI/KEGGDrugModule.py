@@ -107,6 +107,7 @@ def importKEGGDrug():
 	# Drugs Names Synonyms (Concat)
 	df_drugsSynonyms = pd.concat([df_drugs, df_drugsSynonyms], ignore_index=True)
 	df_drugsSynonyms = df_drugsSynonyms.drop_duplicates()
+	df_drugsSynonyms.reset_index(inplace=True, drop=True)
 
 	# Cross Checking Drugs for Interaction 
 	if not silent: print('Cross Checking Drugs for Interaction')

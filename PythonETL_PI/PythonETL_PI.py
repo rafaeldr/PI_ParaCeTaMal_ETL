@@ -11,7 +11,7 @@ import KEGGDrugModule
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
 callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
-callTermMatchingKEGGDrug = False # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
+callTermMatchingKEGGDrug = True # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
 prodEnvironment = False # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
@@ -385,7 +385,8 @@ else:
 if callTermMatchingKEGGDrug:
     if not silent: print('KEGG Drug + ANVISA - Calling Term Matching Module')
     #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
-    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'], 'keggdrug')
+    #df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'], 'keggdrug')
+    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugsSynonyms['name'], df_KEGG_drugsSynonyms['keggdrug-id'], 'keggdrug')
     df_KEGGDrug_Anvisa.to_csv(exp_csv_KEGGDrug_Anvisa, index = False)
 else:
     if not silent: print('KEGG Drug + ANVISA - Loading Preprocessed Term Matching') 
