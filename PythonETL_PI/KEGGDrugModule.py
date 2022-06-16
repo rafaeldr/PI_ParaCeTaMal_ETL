@@ -54,7 +54,7 @@ def importKEGGDrug():
 					else:
 						drugName = drugName + ' ' + candidate.replace(',', '').strip().upper()
 				drugs.append({'keggdrug-id':drugID,
-							 'name':drugName
+							 'name':drugName.replace(';', '')
 							})
 			elif lastCommand == 'NAME':	# Only Synonyms
 				drugName = tokens[0].upper()
@@ -65,7 +65,7 @@ def importKEGGDrug():
 					else:
 						drugName = drugName + ' ' + candidate.replace(',', '').strip().upper()
 				drugsSynonyms.append({'keggdrug-id':drugID,
-							 'name':drugName
+							 'name':drugName.replace(';', '')
 							})
 				pass
 			elif tokens[0] == 'METABOLISM' or lastCommand == 'METABOLISM' or tokens[0] == 'INTERACTION' or lastCommand == 'INTERACTION':

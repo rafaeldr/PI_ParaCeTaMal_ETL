@@ -394,8 +394,11 @@ else:
 
 # BigTable Section
 if not silent: print('Populating BigTable Data Structure')
-df_BigTable = df_drugs.rename(columns={'drugbank-id': 'id_principal', 'name' : 'nome'})
-df_BigTable['tipo_origem'] = [1] * len(df_drugs)
+df_BigTable = df_KEGG_drugs.rename(columns={'keggdrug-id': 'id_principal', 'name' : 'nome'})
+df_BigTable['tipo_origem'] = [1] * len(df_KEGG_drugs)
+# TODO: Find a way to combine both
+#df_BigTable = df_drugs.rename(columns={'drugbank-id': 'id_principal', 'name' : 'nome'})
+#df_BigTable['tipo_origem'] = [1] * len(df_drugs)
 
 df_aux = df_Anvisa_Names.rename(columns={'id': 'id_principal', 'nomeProduto' : 'nome'})
 df_aux['tipo_origem'] = [2] * len(df_Anvisa_Names)
