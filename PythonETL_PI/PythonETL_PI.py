@@ -7,12 +7,13 @@ import TranslationModule
 import TermMatchingModule
 import SQLModule as sql
 import KEGGDrugModule
+import utils
 
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
-callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
+callTermMatchingDrugBank = True # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
 callTermMatchingKEGGDrug = True # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
-prodEnvironment = False # False for "development/test"; true for "production" execution
+prodEnvironment = True # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
 TranslationModule.silent = silent
@@ -38,17 +39,29 @@ exp_csv_KEGG_Drugs = r"..\Exported\exp_csv_KEGG_Drugs.csv"
 exp_csv_KEGG_DrugsSynonyms = r"..\Exported\exp_csv_KEGG_DrugsSynonyms.csv"
 exp_csv_KEGG_Interaction = r"..\Exported\exp_csv_KEGG_Interaction.csv"
 exp_csv_KEGGDrug_Anvisa = r"..\Exported\exp_csv_KEGGDrug_Anvisa.csv" # REQUIRED When callTermMatchingKEGGDrug is False
+exp_csv_ComputingTime = r"..\Exported\exp_csv_ComputingTime.csv"
 
+timeTracker = utils.TimeTracker(exp_csv_ComputingTime)
+KEGGDrugModule.timeTracker = timeTracker
 
 # Importing Data Sources (AS-IS) - ANVISA
-if not silent: print('Importing Data Sources (AS-IS) - ANVISA')
+strSubject = 'Importing Data Sources (AS-IS) - ANVISA'
+if not silent: print(strSubject)
+timeTracker.note(strSubject,'start')
 df_anvisa = pd.read_csv(anvisa_file, sep=';')
+timeTracker.note(strSubject,'end')
 # Importing Data Sources (AS-IS) - DrugBank
-if not silent: print('Importing Data Sources (AS-IS) - DrugBank') 
+strSubject = 'Importing Data Sources (AS-IS) - DrugBank'
+if not silent: print(strSubject) 
+timeTracker.note(strSubject,'start')
 with open(drugbank_file, encoding='utf-8') as fd:
     drugbank_dict = xmltodict.parse(fd.read())
+timeTracker.note(strSubject,'end')
 
 # region DrugBank
+strSubject = 'DrugBank - Data Processing (Transform)'
+timeTracker.note(strSubject,'start')
+
 # Drugs - Extraction
 if not silent: print('DrugBank - Extracting Names') 
 data = []
@@ -139,9 +152,13 @@ if not silent: print('DrugBank - Exporting CSVs')
 df_drugs.to_csv(exp_csv_drugs, index = False)
 df_interactions.to_csv(exp_csv_interactions, index = False)
 
+timeTracker.note(strSubject,'end')
 # endregion DrugBank
 
 # region ANVISA
+
+strSubject = 'ANVISA - Data Processing (Transform)'
+timeTracker.note(strSubject,'start')
 
 # Names (Anvisa_Name)
 
@@ -310,17 +327,24 @@ if len(set(df_Anvisa_Names_Principles['idProduto']).difference(df_Anvisa_Names['
     print('Unexpected error: ANVISA Data Frame for Names <-> Active Principles contains wrong Product ids.')
     exit(1)
 
+timeTracker.note(strSubject,'end') # ANVISA
 
 # Translation Section Call (Run Once) - "Limited Resource" [Google Translator API]
 if callTranslator:
-    if not silent: print('ANVISA - Calling Translation Module') 
+    strSubject = 'ANVISA - Calling Translation Module'
+    if not silent: print(strSubject) 
+    timeTracker.note(strSubject,'start')
     s_pAtivos = df_Anvisa_PrinciplesAccented['nome_pAtivo']  # Series
     s_pAtivosTranslated = TranslationModule.BatchTranslate(s_pAtivos)
     s_pAtivosTranslated.to_csv(exp_csv_pAtivos_Traducoes, index = False)
     df_PrinciplesTraducoes = s_pAtivosTranslated
+    timeTracker.note(strSubject,'end')
 else:
-    if not silent: print('ANVISA - Loading Translations') 
+    strSubject = 'ANVISA - Loading Translations'
+    if not silent: print(strSubject) 
+    timeTracker.note(strSubject,'start')
     df_PrinciplesTraducoes = pd.read_csv(exp_csv_pAtivos_Traducoes, sep=',')
+    timeTracker.note(strSubject,'end')
 
 
 # Adjust Translations for Upper Case
@@ -345,9 +369,10 @@ df_Anvisa_Names.to_csv(exp_csv_Nomes, encoding="utf-8", index = False)
 df_Anvisa_Names_Principles.to_csv(exp_csv_Nomes_pAtivos, encoding="utf-8", index = False)
 df_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8", index = False)
 
+
 # endregion
 
-# region ANVISA
+# region KEGG Drug
 
 # Importing KEGG Drug
 df_KEGG_drugs, df_KEGG_drugsSynonyms, df_KEGG_interaction = KEGGDrugModule.importKEGGDrug()
@@ -372,29 +397,43 @@ if len(df_drugs['name']) != len(set(df_drugs['name'])):
 
 # Nomenclature Pair Matching Module Call - DrugBank
 if callTermMatchingDrugBank:
-    if not silent: print('DrugBank + ANVISA - Calling Term Matching Module')
-    #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
+    strSubject = 'DrugBank + ANVISA - Calling Term Matching Module'
+    if not silent: print(strSubject)
+    timeTracker.note(strSubject,'start')
+    #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo']) # Order matters
     df_DrugBank_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_drugs['name'], df_drugs['drugbank-id'], 'drugbank')
     df_DrugBank_Anvisa.to_csv(exp_csv_DrugBank_Anvisa, index = False)
+    timeTracker.note(strSubject,'end')
 else:
-    if not silent: print('DrugBank + ANVISA - Loading Preprocessed Term Matching') 
+    strSubject = 'DrugBank + ANVISA - Loading Preprocessed Term Matching'
+    if not silent: print(strSubject) 
+    timeTracker.note(strSubject,'start')
     df_DrugBank_Anvisa = pd.read_csv(exp_csv_DrugBank_Anvisa, sep=',')
+    timeTracker.note(strSubject,'end')
 
 
 # Nomenclature Pair Matching Module Call - KEGGDrug
 if callTermMatchingKEGGDrug:
-    if not silent: print('KEGG Drug + ANVISA - Calling Term Matching Module')
-    #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'])
-    #df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'], 'keggdrug')
-    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugsSynonyms['name'], df_KEGG_drugsSynonyms['keggdrug-id'], 'keggdrug')
+    strSubject = 'KEGG Drug + ANVISA - Calling Term Matching Module'
+    if not silent: print(strSubject) 
+    timeTracker.note(strSubject,'start')
+    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'], 'keggdrug')
+    #df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugsSynonyms['name'], df_KEGG_drugsSynonyms['keggdrug-id'], 'keggdrug')
     df_KEGGDrug_Anvisa.to_csv(exp_csv_KEGGDrug_Anvisa, index = False)
+    timeTracker.note(strSubject,'end')
 else:
-    if not silent: print('KEGG Drug + ANVISA - Loading Preprocessed Term Matching') 
+    strSubject = 'KEGG Drug + ANVISA - Loading Preprocessed Term Matching'
+    if not silent: print(strSubject) 
+    timeTracker.note(strSubject,'start')
     df_KEGGDrug_Anvisa = pd.read_csv(exp_csv_KEGGDrug_Anvisa, sep=',')
+    timeTracker.note(strSubject,'end')
 
 
 # BigTable Section
-if not silent: print('Populating BigTable Data Structure')
+strSubject = 'Populating BigTable Data Structure'
+if not silent: print(strSubject) 
+timeTracker.note(strSubject,'start')
+
 df_BigTable = df_KEGG_drugs.rename(columns={'keggdrug-id': 'id_principal', 'name' : 'nome'})
 df_BigTable['tipo_origem'] = [1] * len(df_KEGG_drugs)
 # TODO: Find a way to combine both
@@ -410,8 +449,12 @@ df_aux = df_aux[['id_principal','nome']]
 df_aux['tipo_origem'] = [3] * len(df_Anvisa_PrinciplesAccented)
 df_BigTable = df_BigTable.append(df_aux, ignore_index=True)
 
+timeTracker.note(strSubject,'end')
 
 # SQL Scripts
+strSubject = 'Generating All SQL Scripts'
+timeTracker.note(strSubject,'start')
+
 # ['drugbank-id', 'name']
 if not silent: print('SQL Scripts - Creating CREATE and INSERT scripts for database tables')
 df_drugs.rename(columns={'drugbank-id': 'drugbank_id'}, inplace = True)
@@ -464,4 +507,7 @@ sqlKEGGDrug_Name.exportSQLScripts()
 sqlKEGGDrug_Interactions.exportSQLScripts()
 sqlKEGGDrug_Anvisa.exportSQLScripts()
 
+timeTracker.note(strSubject,'end')
+
+timeTracker.export()
 print('ETL Successfully Executed!')

@@ -1,12 +1,14 @@
 import pandas as pd
 import numpy as np
-
+import utils
 
 # Parameters
 silent = False
 threshold = 0
 # File locations
 file = r"..\DataSources\drug"
+exp_csv_ComputingTime = r"..\Exported\exp_csv_ComputingTime.csv"
+timeTracker = utils.TimeTracker(exp_csv_ComputingTime)
 
 
 def importKEGGDrug():
@@ -18,7 +20,10 @@ def importKEGGDrug():
 	drugMetabolicInteraction = []  # DrugID, HSA Code
 
 	# Importing Data Sources - KEGG Drug
-	if not silent: print('Importing Data Sources - KEGG Drug')
+	strSubject = 'Importing Data Sources - KEGG Drug'
+	if not silent: print(strSubject)
+	timeTracker.note(strSubject,'start')
+	
 	# Iterate Through File: Line by Line
 	with open(file) as f:
 		for line in f:
@@ -109,8 +114,12 @@ def importKEGGDrug():
 	df_drugsSynonyms = df_drugsSynonyms.drop_duplicates()
 	df_drugsSynonyms.reset_index(inplace=True, drop=True)
 
+	timeTracker.note(strSubject,'end')
+
 	# Cross Checking Drugs for Interaction 
-	if not silent: print('Cross Checking Drugs for Interaction')
+	strSubject = 'KEGG Drug - Cross Checking Drugs for Interaction'
+	if not silent: print(strSubject)
+	timeTracker.note(strSubject,'start')
 
 	drugDrugInteraction = [] # DrugID, DrugID
 	#drugsSeries = df_drugs['keggdrug-id']
@@ -148,5 +157,7 @@ def importKEGGDrug():
 	if any(df_interaction['keggdrug-id1']>df_interaction['keggdrug-id2']):
 		print('Unexpected error: KEGG Drug Data : Interactions should respect id1 < id2!')
 		exit(1)
+
+	timeTracker.note(strSubject,'end')
 
 	return df_drugs, df_drugsSynonyms, df_interaction

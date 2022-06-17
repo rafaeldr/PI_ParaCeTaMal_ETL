@@ -40,6 +40,9 @@
     <Compile Include="TranslationModule.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="utils.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|py3_env" />
