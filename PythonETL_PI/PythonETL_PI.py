@@ -11,8 +11,8 @@ import utils
 
 # Parameters
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
-callTermMatchingDrugBank = True # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
-callTermMatchingKEGGDrug = True # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
+callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
+callTermMatchingKEGGDrug = False # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
 prodEnvironment = True # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
@@ -27,6 +27,7 @@ else:
 KEGGDrugModule.file = r"..\DataSources\drug"
 # Export
 exp_csv_drugs = r"..\Exported\exp_csv_drugs.csv"
+exp_csv_drugsSynonyms = r"..\Exported\exp_csv_drugsSynonyms.csv"
 exp_csv_interactions = r"..\Exported\exp_csv_interactions.csv"
 exp_csv_pAtivos = r"..\Exported\exp_csv_pAtivos.csv"
 exp_csv_pAtivosAccented = r"..\Exported\exp_csv_pAtivosAccented.csv"
@@ -65,6 +66,7 @@ timeTracker.note(strSubject,'start')
 # Drugs - Extraction
 if not silent: print('DrugBank - Extracting Names') 
 data = []
+dataSynonyms = []
 for drug in drugbank_dict['drugbank']['drug']:
     if type(drug['drugbank-id']) == list:
         id = str(drug['drugbank-id'][0]['#text'])
@@ -74,7 +76,26 @@ for drug in drugbank_dict['drugbank']['drug']:
     data.append({'drugbank-id':int(id),
                  'name':str(drug['name']).strip().upper()
                  })
+
+    # Drugs - Synonyms
+    if drug['synonyms']!=None:
+        if type(drug['synonyms']['synonym']) == collections.OrderedDict: # only 1 registry
+            synonymName = str(drug['synonyms']['synonym']['#text']).strip().upper()
+            dataSynonyms.append({'drugbank-id':int(id),
+                         'name':synonymName
+                         })
+        elif type(drug['synonyms']['synonym']) == list:
+            for synonym in drug['synonyms']['synonym']:
+                synonymName = str(synonym['#text']).strip().upper()
+                dataSynonyms.append({'drugbank-id':int(id),
+                             'name':synonymName
+                             })
+        else:
+            print('Unexpected error: Unexpected condition during DrugBank Synonyms extraction.')
+            exit(1)
+
 df_drugs = pd.DataFrame(data)
+df_drugsSynonyms = pd.DataFrame(dataSynonyms)
 
 # Interactions - Extraction
 if not silent: print('DrugBank - Extracting Interactions') 
@@ -86,7 +107,7 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
         drugOrigin_id = str(drugOrigin['drugbank-id']['#text'])
 
     if drugOrigin['drug-interactions']!=None:
-        if drugOrigin['drug-interactions']['drug-interaction'] == collections.OrderedDict: # only 1 registry
+        if type(drugOrigin['drug-interactions']['drug-interaction']) == collections.OrderedDict: # only 1 registry
             drugDestiny_id = str(drugOrigin['drug-interactions']['drug-interaction']['drugbank-id'])
             data.append([int(drugOrigin_id[2:]),
                          int(drugDestiny_id[2:])
@@ -100,6 +121,9 @@ for drugOrigin in drugbank_dict['drugbank']['drug']:
                 data.append([int(drugOrigin_id[2:]),
                              int(drugDestiny_id[2:])
                              ])
+        else:
+            print('Unexpected error: Unexpected condition during DrugBank drug-interaction extraction.')
+            exit(1)
 
 # Removing reversed duplicates
 if not silent: print('DrugBank - Interactions - Removing Reversed Duplicates') 
@@ -146,10 +170,15 @@ if len(diff_set) > 0:
         print("Unexpected error: Some ids referenced by interactions don't exist as DrugBank drug names.")
         exit(1)
 
+# DrugBank Drug Synonyms (Concat)
+df_drugsSynonyms = pd.concat([df_drugs, df_drugsSynonyms], ignore_index=True)
+df_drugsSynonyms = df_drugsSynonyms.drop_duplicates()
+df_drugsSynonyms.reset_index(inplace=True, drop=True)
 
 # Exporting
 if not silent: print('DrugBank - Exporting CSVs') 
 df_drugs.to_csv(exp_csv_drugs, index = False)
+df_drugsSynonyms.to_csv(exp_csv_drugsSynonyms, index = False)
 df_interactions.to_csv(exp_csv_interactions, index = False)
 
 timeTracker.note(strSubject,'end')
@@ -397,11 +426,12 @@ if len(df_drugs['name']) != len(set(df_drugs['name'])):
 
 # Nomenclature Pair Matching Module Call - DrugBank
 if callTermMatchingDrugBank:
-    strSubject = 'DrugBank + ANVISA - Calling Term Matching Module'
+    strSubject = 'DrugBank + ANVISA - Calling Term Matching Module (With Synonyms)'
     if not silent: print(strSubject)
     timeTracker.note(strSubject,'start')
     #df_DrugBank_Anvisa = TermMatchingModule.match(df_drugs['name'], df_drugs['drugbank-id'], df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo']) # Order matters
-    df_DrugBank_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_drugs['name'], df_drugs['drugbank-id'], 'drugbank')
+    #df_DrugBank_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_drugs['name'], df_drugs['drugbank-id'], 'drugbank')
+    df_DrugBank_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_drugsSynonyms['name'], df_drugsSynonyms['drugbank-id'], 'drugbank')
     df_DrugBank_Anvisa.to_csv(exp_csv_DrugBank_Anvisa, index = False)
     timeTracker.note(strSubject,'end')
 else:
@@ -414,11 +444,11 @@ else:
 
 # Nomenclature Pair Matching Module Call - KEGGDrug
 if callTermMatchingKEGGDrug:
-    strSubject = 'KEGG Drug + ANVISA - Calling Term Matching Module'
+    strSubject = 'KEGG Drug + ANVISA - Calling Term Matching Module (With Synonyms)'
     if not silent: print(strSubject) 
     timeTracker.note(strSubject,'start')
-    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'], 'keggdrug')
-    #df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugsSynonyms['name'], df_KEGG_drugsSynonyms['keggdrug-id'], 'keggdrug')
+    #df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugs['name'], df_KEGG_drugs['keggdrug-id'], 'keggdrug')
+    df_KEGGDrug_Anvisa = TermMatchingModule.match(df_Anvisa_PrinciplesAccented['translated_pAtivo'], df_Anvisa_PrinciplesAccented['id_pAtivo'], df_KEGG_drugsSynonyms['name'], df_KEGG_drugsSynonyms['keggdrug-id'], 'keggdrug')
     df_KEGGDrug_Anvisa.to_csv(exp_csv_KEGGDrug_Anvisa, index = False)
     timeTracker.note(strSubject,'end')
 else:
