@@ -13,6 +13,7 @@ import utils
 callTranslator = False  # Keep false unless required (implies in costs from GoogleCloud)
 callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
 callTermMatchingKEGGDrug = False # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
+callKEGGDrugModule = False
 prodEnvironment = True # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
@@ -404,10 +405,19 @@ df_Equal_Names_Principles.to_csv(exp_csv_Analysis_Nomes_pAtivos, encoding="utf-8
 # region KEGG Drug
 
 # Importing KEGG Drug
-df_KEGG_drugs, df_KEGG_drugsSynonyms, df_KEGG_interaction = KEGGDrugModule.importKEGGDrug()
-df_KEGG_drugs.to_csv(exp_csv_KEGG_Drugs, encoding="utf-8", index = False)
-df_KEGG_drugsSynonyms.to_csv(exp_csv_KEGG_DrugsSynonyms, encoding="utf-8", index = False)
-df_KEGG_interaction.to_csv(exp_csv_KEGG_Interaction, encoding="utf-8", index = False)
+if callKEGGDrugModule:
+    df_KEGG_drugs, df_KEGG_drugsSynonyms, df_KEGG_interaction = KEGGDrugModule.importKEGGDrug()
+    df_KEGG_drugs.to_csv(exp_csv_KEGG_Drugs, encoding="utf-8", index = False)
+    df_KEGG_drugsSynonyms.to_csv(exp_csv_KEGG_DrugsSynonyms, encoding="utf-8", index = False)
+    df_KEGG_interaction.to_csv(exp_csv_KEGG_Interaction, encoding="utf-8", index = False)
+else:
+    strSubject = 'KEGG Drug - Loading Preprocessed Data'
+    if not silent: print(strSubject) 
+    timeTracker.note(strSubject,'start')
+    df_KEGG_drugs = pd.read_csv(exp_csv_KEGG_Drugs, sep=',')
+    df_KEGG_drugsSynonyms = pd.read_csv(exp_csv_KEGG_DrugsSynonyms, sep=',')
+    df_KEGG_interaction = pd.read_csv(exp_csv_KEGG_Interaction, sep=',')
+    timeTracker.note(strSubject,'end')
 
 # endregion
 
