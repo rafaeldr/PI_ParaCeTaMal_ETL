@@ -14,6 +14,7 @@ callTranslator = False  # Keep false unless required (implies in costs from Goog
 callTermMatchingDrugBank = False # Keep false unless required (implies in high computation time) [Requires exp_csv_DrugBank_Anvisa]
 callTermMatchingKEGGDrug = False # Keep false unless required (implies in high computation time) [Requires exp_csv_KEGGDrug_Anvisa]
 callKEGGDrugModule = False
+mode_DrugBank_OR_KEGGDrug = 'kegg' # for KEGG Drug: 'kegg', for DrugBank: 'drugbank'  (imply in BigTable only)
 prodEnvironment = True # False for "development/test"; true for "production" execution
 silent = False          # Display track of progress info (when False)
 TermMatchingModule.silent = silent
@@ -474,11 +475,16 @@ strSubject = 'Populating BigTable Data Structure'
 if not silent: print(strSubject) 
 timeTracker.note(strSubject,'start')
 
-df_BigTable = df_KEGG_drugs.rename(columns={'keggdrug-id': 'id_principal', 'name' : 'nome'})
-df_BigTable['tipo_origem'] = [1] * len(df_KEGG_drugs)
-# TODO: Find a way to combine both
-#df_BigTable = df_drugs.rename(columns={'drugbank-id': 'id_principal', 'name' : 'nome'})
-#df_BigTable['tipo_origem'] = [1] * len(df_drugs)
+# TODO: Find a way to combine both (Next Release)
+if mode_DrugBank_OR_KEGGDrug == 'kegg':
+    df_BigTable = df_KEGG_drugs.rename(columns={'keggdrug-id': 'id_principal', 'name' : 'nome'})
+    df_BigTable['tipo_origem'] = [1] * len(df_KEGG_drugs)
+elif mode_DrugBank_OR_KEGGDrug == 'drugbank':
+    df_BigTable = df_drugs.rename(columns={'drugbank-id': 'id_principal', 'name' : 'nome'})
+    df_BigTable['tipo_origem'] = [1] * len(df_drugs)
+else:
+    print('Unexpected error: Unexpected mode for Big Table generation.')
+    exit(1)
 
 df_aux = df_Anvisa_Names.rename(columns={'id': 'id_principal', 'nomeProduto' : 'nome'})
 df_aux['tipo_origem'] = [2] * len(df_Anvisa_Names)
